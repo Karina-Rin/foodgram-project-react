@@ -30,9 +30,9 @@ git clone https://github.com/Karina-Rin/foodgram-project-react.git
 
 3. Создаем и активируем виртуальное окружение, обновляем pip:
 ```
-python3 -m venv venv
+python -m venv venv
 . venv/bin/activate
-python3 -m pip install --upgrade pip
+python -m pip install --upgrade pip
 ```
 
 4. Устанавливаем зависимости:
