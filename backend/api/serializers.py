@@ -1,15 +1,9 @@
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (
-    Ingredient,
-    IngredientAmount,
-    Recipe,
-    RecipeFavorite,
-    ShoppingCart,
-    Tag,
-)
+from recipes.models import (Ingredient, IngredientAmount, Recipe,
+                            RecipeFavorite, ShoppingCart, Tag)
 from rest_framework import serializers
-from users.models import User, Follow
+from users.models import Follow, User
 
 
 class CommonFollowSerializer(metaclass=serializers.SerializerMetaclass):

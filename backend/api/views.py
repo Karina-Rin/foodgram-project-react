@@ -1,35 +1,23 @@
 from http import HTTPStatus
 
 from api.filters import IngredientSearchFilter, RecipeFilters
-from api.serializers import (
-    FavoriteRecipeSerializer,
-    IngredientSerializer,
-    RecipeCreateSerializer,
-    RecipeSerializer,
-    RegistrationUserSerializer,
-    ShoppingCartSerializer,
-    CommonFollowSerializer,
-    TagSerializer,
-)
+from api.permissions import IsAdmin
+from api.serializers import (CommonFollowSerializer, FavoriteRecipeSerializer,
+                             IngredientSerializer, RecipeCreateSerializer,
+                             RecipeSerializer, RegistrationUserSerializer,
+                             ShoppingCartSerializer, TagSerializer)
+from api.utils import delete_for_actions, get_cart_txt, post_for_actions
 from django.db.models import Sum
 from django.shortcuts import get_list_or_404, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (
-    Ingredient,
-    IngredientAmount,
-    Recipe,
-    RecipeFavorite,
-    ShoppingCart,
-    Tag,
-)
+from recipes.models import (Ingredient, IngredientAmount, Recipe,
+                            RecipeFavorite, ShoppingCart, Tag)
 from reportlab.lib.pagesizes import A4
-from rest_framework import permissions, viewsets, status, viewsets
-from rest_framework.response import Response
-from users.models import User, Follow
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from api.permissions import IsAdmin
-from api.utils import delete_for_actions, get_cart_txt, post_for_actions
+from rest_framework.response import Response
+from users.models import Follow, User
 
 
 class UserView(UserViewSet):
