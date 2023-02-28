@@ -2,14 +2,18 @@ from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import (Ingredient, IngredientAmount, Recipe,
-                            RecipeFavorite, ShoppingCart, Tag)
+from recipes.models import (
+    Ingredient,
+    IngredientAmount,
+    Recipe,
+    RecipeFavorite,
+    ShoppingCart,
+    Tag,
+)
 from users.models import Follow, User
 
 
 class CommonFollowSerializer(metaclass=serializers.SerializerMetaclass):
-    is_subscribed = serializers.SerializerMethodField()
-
     def get_is_subscribed(self, obj):
         request = self.context.get("request")
         if request.user.is_anonymous:
@@ -23,9 +27,6 @@ class CommonFollowSerializer(metaclass=serializers.SerializerMetaclass):
 
 
 class CommonRecipeSerializer(metaclass=serializers.SerializerMetaclass):
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
-
     def get_is_favorited(self, obj):
         request = self.context.get("request")
         if request.user.is_anonymous:
@@ -50,8 +51,6 @@ class CommonRecipeSerializer(metaclass=serializers.SerializerMetaclass):
 
 
 class CommonCount(metaclass=serializers.SerializerMetaclass):
-    recipes_count = serializers.SerializerMethodField()
-
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author__id=obj.id).count()
 
@@ -248,7 +247,8 @@ class RecipeCreateSerializer(
             text=text,
             cooking_time=cooking_time,
         )
-        recipe = self.add_tags_and_ingredients(tags_data, ingredients, recipe)
+        self.add_tags_and_ingredients(tags_data, ingredients, recipe)
+        recipe.tags.set(tags_data)
         return recipe
 
     def update(self, instance, validated_data):
