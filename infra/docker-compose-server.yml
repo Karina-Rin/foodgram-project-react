@@ -11,9 +11,11 @@ services:
 
   db:
     container_name: db
-    image: postgres:13-alpine
+    image: postgres:13.0-alpine
     volumes:
       - db_value:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_PASSWORD: postgres
     env_file:
       - ./.env
 
@@ -26,12 +28,12 @@ services:
       - media_value:/app/media/
     depends_on:
       - db
-    env_file:
-      - ./.env
 
   frontend:
     container_name: frontend
-    image: karinarin/foodgram:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     volumes:
       - frontend_value:./frontend/:/app/result_build/
     depends_on:
@@ -50,4 +52,4 @@ services:
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
-      - frontend
+      - backend

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+
 from users.models import Follow, User
 
 
@@ -21,12 +22,3 @@ class UserAdmin(UserAdmin):
         "email",
     )
     empty_value_display = "-пусто-"
-
-
-class FollowAdmin(admin.ModelAdmin):
-    list_display = ("user", "following")
-    empty_value_display = "-пусто-"
-
-
-admin.site.register(User, UserAdmin)
-admin.site.register(Follow, FollowAdmin)

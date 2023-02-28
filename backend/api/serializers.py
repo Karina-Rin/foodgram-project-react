@@ -1,8 +1,9 @@
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
+
 from recipes.models import (Ingredient, IngredientAmount, Recipe,
                             RecipeFavorite, ShoppingCart, Tag)
-from rest_framework import serializers
 from users.models import Follow, User
 
 
@@ -203,9 +204,7 @@ class RecipeCreateSerializer(
             id_to_check = ingredient["ingredient"]["id"]
             ingredient_to_check = Ingredient.objects.filter(id=id_to_check)
             if not ingredient_to_check.exists():
-                raise serializers.ValidationError(
-                    "Этого продукта нет в базе!"
-                )
+                raise serializers.ValidationError("Этого продукта нет в базе!")
             if ingredient_to_check in ingredients_list:
                 raise serializers.ValidationError(
                     "Эти продукты повторяются в рецепте!"
@@ -271,7 +270,7 @@ class RecipeMinifieldSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "cooking_time", "image")
 
 
-class SubscriptionSerializer(
+class FollowSerializer(
     serializers.ModelSerializer, CommonFollowSerializer, CommonCount
 ):
     recipes = serializers.SerializerMethodField()
@@ -284,7 +283,7 @@ class SubscriptionSerializer(
             "username",
             "first_name",
             "last_name",
-            "is_subscription",
+            "is_follow",
             "recipes",
             "recipes_count",
         )

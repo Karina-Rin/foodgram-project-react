@@ -1,5 +1,14 @@
 from http import HTTPStatus
 
+from django.db.models import Sum
+from django.shortcuts import get_list_or_404, get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet
+from reportlab.lib.pagesizes import A4
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
 from api.filters import IngredientSearchFilter, RecipeFilters
 from api.permissions import IsAdmin
 from api.serializers import (CommonFollowSerializer, FavoriteRecipeSerializer,
@@ -7,20 +16,12 @@ from api.serializers import (CommonFollowSerializer, FavoriteRecipeSerializer,
                              RecipeSerializer, RegistrationUserSerializer,
                              ShoppingCartSerializer, TagSerializer)
 from api.utils import delete_for_actions, get_cart_txt, post_for_actions
-from django.db.models import Sum
-from django.shortcuts import get_list_or_404, get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
-from djoser.views import UserViewSet
 from recipes.models import (Ingredient, IngredientAmount, Recipe,
                             RecipeFavorite, ShoppingCart, Tag)
-from reportlab.lib.pagesizes import A4
-from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
 from users.models import Follow, User
 
 
-class UserView(UserViewSet):
+class CustomUserViewSet(UserViewSet):
     serializer_class = RegistrationUserSerializer
 
     def get_queryset(self):
