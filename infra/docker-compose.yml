@@ -36,6 +36,8 @@ services:
     image: karinarin/frontend:latest
     volumes:
       - frontend_value:../frontend/:/app/result_build/
+    depends_on:
+      - backend
 
   nginx:
     container_name: nginx
