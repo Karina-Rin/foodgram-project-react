@@ -4,6 +4,7 @@ volumes:
   db_value:
   static_value:
   media_value:
+  redoc_value:
   frontend_value:
 
 
@@ -19,23 +20,22 @@ services:
 
   backend:
     container_name: backend
-    image: karinarin/foodgram:latest
+    image: karinarin/backend:latest
     restart: always
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
+      - redoc_value:/app/api/docs/
     depends_on:
       - db
     env_file:
       - ./.env
 
-  frontend:
-    container_name: frontend
-    image: karinarin/foodgram:latest
-    volumes:
-      - frontend_value:./frontend/:/app/result_build/
-    depends_on:
-      - db
+  #  frontend:
+  #    container_name: frontend
+  #    image: karinarin/frontend:latest
+  #    volumes:
+  #      - frontend_value:../frontend/:/app/result_build/
 
   nginx:
     container_name: nginx
@@ -50,4 +50,4 @@ services:
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
-      - frontend
+      - backend
