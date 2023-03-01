@@ -19,8 +19,8 @@ services:
       - ./.env
 
   backend:
-    container_name: backend
-    image: karinarin/backend:latest
+    container_name: foodgram_backend
+    image: karinarin/foodgram_backend:latest
     restart: always
     volumes:
       - static_value:/app/static/
@@ -32,8 +32,8 @@ services:
       - ./.env
 
   frontend:
-    container_name: frontend
-    image: karinarin/frontend:latest
+    container_name: foodgram_frontend
+    image: karinarin/foodgram_frontend:latest
     volumes:
       - frontend_value:../frontend/:/app/result_build/
     depends_on:
@@ -54,4 +54,3 @@ services:
 
     depends_on:
       - frontend
-      - backend
