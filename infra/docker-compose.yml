@@ -31,13 +31,13 @@ services:
     env_file:
       - ./.env
 
-    frontend:
-      container_name: foodgram_frontend
-      image: karinarin/foodgram_frontend:latest
-      volumes:
-        - frontend_value:../frontend/:/app/result_build/
-      depends_on:
-        - backend
+  frontend:
+    container_name: foodgram_frontend
+    image: karinarin/foodgram_frontend:latest
+    volumes:
+      - frontend_value:../frontend/:/app/result_build/
+    depends_on:
+      - backend
 
   nginx:
     container_name: nginx
