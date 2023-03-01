@@ -72,20 +72,22 @@ python manage.py createsuperuser
 Проект запустится на адресе http://localhost.
 Увидеть спецификацию API можно по адресу http://localhost/api/docs/
 
-#### Создан суперюзер для проверки ревьюером:
-```
-login:
-password:
-```
+#### Тестовые данные для проверки ревьюером (БУДУТ ДОБАВЛЕНЫ НА 2 ЭТАПЕ ПРОВЕРКИ):
 
-### Сайт доступен по ссылке
-```
+```bash
+# Админ
+http://localhost/admin
+Login: 
+Password: 
 
-```
+# Тестовый пользователь
+http://localhost/
+Email: 
+Password: 
 
 ### Документация
 ```
-http://  //
+http://localhost/redoc
 ```
 
 ## Авторы
