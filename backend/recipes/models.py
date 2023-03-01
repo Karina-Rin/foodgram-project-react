@@ -63,7 +63,7 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         related_name="recipe",
-        verbose_name="Автор",
+        verbose_name="Автор публикации",
         help_text="Выберите автора рецепта",
         on_delete=models.CASCADE,
     )
@@ -71,12 +71,6 @@ class Recipe(models.Model):
         verbose_name="Название рецепта",
         help_text="Введите название рецепта",
         max_length=settings.MAX_LEGTH,
-    )
-    ingredients = models.ManyToManyField(
-        Ingredient,
-        related_name="recipes",
-        verbose_name="Ингредиенты в рецепте",
-        help_text="Выберите ингредиенты рецепта",
     )
     image = models.ImageField(
         verbose_name="Изображение",
@@ -86,15 +80,21 @@ class Recipe(models.Model):
     text = models.TextField(
         verbose_name="Описание рецепта", help_text="Введите описания рецепта"
     )
-    cooking_time = models.PositiveIntegerField(
-        verbose_name="Время приготовления",
-        help_text="Введите время приготовления",
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        related_name="recipes",
+        verbose_name="Ингредиенты для приготовления блюда по рецепту",
+        help_text="Выберите ингредиенты рецепта",
     )
     tags = models.ManyToManyField(
         Tag,
         verbose_name="Тег",
         related_name="recipes",
         help_text="Выберите тег рецепта",
+    )
+    cooking_time = models.PositiveIntegerField(
+        verbose_name="Время приготовления",
+        help_text="Введите время приготовления",
     )
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации рецепта",
