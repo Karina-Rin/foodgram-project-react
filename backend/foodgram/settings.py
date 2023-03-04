@@ -8,7 +8,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "ns6(14uyb7kn3q10kkz+=y8#k!g$$+qhs)ho+6^nzy=9xoru3g"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = False
 
@@ -134,13 +134,7 @@ MAX_LEGTH = 200
 MAX_EMAIL_LENGTH = 254
 MAX_USERNAME_LENGTH = 100
 MAX_PASSWORD_LENGTH = 32
-HELP_TEXT_EMAIL = "Обязательное поле. f'Максимум {MAX_EMAIL_LENGTH} символов.'"
-HELP_TEXT_USERNAME = (
-    "Обязательное поле. f'Максимум {MAX_USERNAME_LENGTH} символов.'"
-)
-HELP_TEXT_PASSWORD = (
-    "Обязательное поле. f'Максимум {MAX_PASSWORD_LENGTH} символов.'"
-)
+
 RECIPE_IMAGE_SIZE = 500, 300
 EMPTY_VALUE_DISPLAY = "-пусто-"
 

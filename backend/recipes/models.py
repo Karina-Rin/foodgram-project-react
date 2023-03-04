@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.forms.widgets import ColorPicker
 
 User = get_user_model()
 
@@ -21,6 +22,7 @@ class Tag(models.Model):
         null=True,
         blank=True,
         unique=True,
+        widget=ColorPicker(attrs={"size": "7"}),
     )
     slug = models.SlugField(
         verbose_name="Slug тега",
@@ -54,6 +56,12 @@ class Ingredient(models.Model):
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
         ordering = ("id",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["name", "measurement_unit"],
+                name="unique_name_measurement_unit",
+            )
+        ]
 
     def __str__(self):
         return self.name
@@ -95,11 +103,12 @@ class Recipe(models.Model):
     cooking_time = models.PositiveIntegerField(
         verbose_name="Время приготовления",
         help_text="Введите время приготовления",
-    )
-    pub_date = models.DateTimeField(
-        verbose_name="Дата публикации рецепта",
-        help_text="Добавить дату создания",
-        auto_now_add=True,
+        validators=(MinValueValidator(1, "Значение не может быть 0"),),
+        pub_date=models.DateTimeField(
+            verbose_name="Дата публикации рецепта",
+            help_text="Добавить дату создания",
+            auto_now_add=True,
+        ),
     )
 
     class Meta:

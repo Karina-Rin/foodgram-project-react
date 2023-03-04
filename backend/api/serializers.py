@@ -2,8 +2,14 @@ from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import (Ingredient, IngredientAmount, Recipe,
-                            RecipeFavorite, ShoppingCart, Tag)
+from recipes.models import (
+    Ingredient,
+    IngredientAmount,
+    Recipe,
+    RecipeFavorite,
+    ShoppingCart,
+    Tag,
+)
 from users.models import Follow, User
 
 
@@ -190,59 +196,65 @@ class RecipeCreateSerializer(
         ingredients_list = []
         ingredients = value
         for ingredient in ingredients:
-            if ingredient["amount"] < 1:
-                raise serializers.ValidationError(
-                    "Количество должно быть >= 1!"
-                )
             id_to_check = ingredient["ingredient"]["id"]
             ingredient_to_check = Ingredient.objects.filter(id=id_to_check)
             if not ingredient_to_check.exists():
                 raise serializers.ValidationError("Этого продукта нет в базе!")
-            if ingredient_to_check in ingredients_list:
-                raise serializers.ValidationError(
-                    "Эти продукты повторяются в рецепте!"
-                )
             ingredients_list.append(ingredient_to_check)
         return value
 
-    def add_tags_and_ingredients(self, tags_data, ingredients, recipe):
-        for tag_data in tags_data:
-            recipe.tags.add(tag_data)
-            recipe.save()
+    def uniq_ingredients_and_tags(self, data):
+        ingredients = data["ingredients"]
+        ingredients_list = []
         for ingredient in ingredients:
-            if not IngredientAmount.objects.filter(
-                ingredient_id=ingredient["ingredient"]["id"], recipe=recipe
-            ).exists():
-                ingredientrecipe = IngredientAmount.objects.create(
-                    ingredient_id=ingredient["ingredient"]["id"], recipe=recipe
-                )
-                ingredientrecipe.amount = ingredient["amount"]
-                ingredientrecipe.save()
-            else:
-                IngredientAmount.objects.filter(recipe=recipe).delete()
-                recipe.delete()
+            ingredient_id = ingredient["id"]
+            if ingredient_id in ingredients_list:
                 raise serializers.ValidationError(
-                    "Эти продукты повторяются в рецепте!"
+                    {"ingredients": "Ингредиенты должны быть уникальными!"}
                 )
-        return recipe
+            if len(ingredients_list) > len(set(ingredients_list)):
+                raise serializers.ValidationError(
+                    "Ингредиенты не должны повторяться."
+                )
+            ingredients_list.append(ingredient_id)
+            amount = ingredient["amount"]
+            if int(amount) <= 0:
+                raise serializers.ValidationError(
+                    {"amount": "Количество ингредиента должно быть >=1!"}
+                )
+        tags = data["tags"]
+        if not tags:
+            raise serializers.ValidationError(
+                {"tags": "Необходимо выбрать хотя бы один тэг!"}
+            )
+        tags_list = []
+        for tag in tags:
+            if tag in tags_list:
+                raise serializers.ValidationError(
+                    {"tags": "Тэги должны быть уникальными!"}
+                )
+            tags_list.append(tag)
+            if len(tags_list) > len(set(tags_list)):
+                raise serializers.ValidationError(
+                    "Тэги не должны повторяться."
+                )
+        cooking_time = data["cooking_time"]
+        if int(cooking_time) <= 0:
+            raise serializers.ValidationError(
+                {"cooking_time": "Время приготовления должно быть больше 0!"}
+            )
+
+        return data
 
     def create(self, validated_data):
         author = validated_data.get("author")
         tags_data = validated_data.pop("tags")
-        name = validated_data.get("name")
-        image = validated_data.get("image")
-        text = validated_data.get("text")
-        cooking_time = validated_data.get("cooking_time")
         ingredients = validated_data.pop("ingredient_recipes")
         recipe = Recipe.objects.create(
             author=author,
-            name=name,
-            image=image,
-            text=text,
-            cooking_time=cooking_time,
+            **validated_data,
         )
-        self.add_tags_and_ingredients(tags_data, ingredients, recipe)
-        recipe.tags.set(tags_data)
+        self.uniq_ingredients_and_tags(tags_data, ingredients)
         return recipe
 
     def update(self, instance, validated_data):
@@ -250,7 +262,7 @@ class RecipeCreateSerializer(
         ingredients = validated_data.pop("ingredient_recipes")
         Follow.objects.filter(recipe=instance).delete()
         IngredientAmount.objects.filter(recipe=instance).delete()
-        instance = self.add_tags_and_ingredients(
+        instance = self.uniq_ingredients_and_tags(
             tags_data, ingredients, instance
         )
         super().update(instance, validated_data)
@@ -285,7 +297,7 @@ class FollowSerializer(
     def get_recipes_limit(self, obj):
         request = self.context.get("request")
         if request.GET.get("recipes_limit"):
-            recipes_limit = int(request.GET.get("recipes_limit"))
+            recipes_limit = int(request.GET.get("recipes_limit"), 0)
             queryset = Recipe.objects.filter(author__id=obj.id).order_by("id")[
                 :recipes_limit
             ]
