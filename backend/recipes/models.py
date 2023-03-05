@@ -1,8 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.forms.widgets import ColorPicker
 
 User = get_user_model()
 
@@ -20,9 +19,13 @@ class Tag(models.Model):
         max_length=7,
         default="#FF0000",
         null=True,
-        blank=True,
         unique=True,
-        widget=ColorPicker(attrs={"size": "7"}),
+        validators=[
+            RegexValidator(
+                "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+                message="Поле должно содержать HEX-код выбранного цвета.",
+            )
+        ],
     )
     slug = models.SlugField(
         verbose_name="Slug тега",
@@ -104,11 +107,11 @@ class Recipe(models.Model):
         verbose_name="Время приготовления",
         help_text="Введите время приготовления",
         validators=(MinValueValidator(1, "Значение не может быть 0"),),
-        pub_date=models.DateTimeField(
-            verbose_name="Дата публикации рецепта",
-            help_text="Добавить дату создания",
-            auto_now_add=True,
-        ),
+    )
+    pub_date = models.DateTimeField(
+        verbose_name="Дата публикации рецепта",
+        help_text="Добавить дату создания",
+        auto_now_add=True,
     )
 
     class Meta:

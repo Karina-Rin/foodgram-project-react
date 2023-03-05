@@ -3,8 +3,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import UniqueConstraint
 
-USERNAME_FIELD = "username"
-
 
 class User(AbstractUser):
     username = models.CharField(
@@ -36,6 +34,8 @@ class User(AbstractUser):
         max_length=settings.MAX_USERNAME_LENGTH,
         help_text="Обязательное поле. f'Максимум {MAX_USERNAME_LENGTH} символов.'",
     )
+
+    USERNAME_FIELD = "username"
 
     class Meta:
         ordering = ("username",)

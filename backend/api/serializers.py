@@ -212,10 +212,6 @@ class RecipeCreateSerializer(
                 raise serializers.ValidationError(
                     {"ingredients": "Ингредиенты должны быть уникальными!"}
                 )
-            if len(ingredients_list) > len(set(ingredients_list)):
-                raise serializers.ValidationError(
-                    "Ингредиенты не должны повторяться."
-                )
             ingredients_list.append(ingredient_id)
             amount = ingredient["amount"]
             if int(amount) <= 0:
@@ -223,6 +219,10 @@ class RecipeCreateSerializer(
                     {"amount": "Количество ингредиента должно быть >=1!"}
                 )
         tags = data["tags"]
+        if len(ingredients_list) > len(set(ingredients_list)):
+            raise serializers.ValidationError(
+                "Ингредиенты не должны повторяться."
+            )
         if not tags:
             raise serializers.ValidationError(
                 {"tags": "Необходимо выбрать хотя бы один тэг!"}
@@ -296,11 +296,13 @@ class FollowSerializer(
 
     def get_recipes_limit(self, obj):
         request = self.context.get("request")
+        recipes_limit = None
         if request.GET.get("recipes_limit"):
-            recipes_limit = int(request.GET.get("recipes_limit"), 0)
-            queryset = Recipe.objects.filter(author__id=obj.id).order_by("id")[
-                :recipes_limit
-            ]
-        else:
-            queryset = Recipe.objects.filter(author__id=obj.id).order_by("id")
+            try:
+                recipes_limit = int(request.GET.get("recipes_limit"), 0)
+            except ValueError:
+                pass
+        queryset = Recipe.objects.filter(author__id=obj.id).order_by("id")
+        if recipes_limit:
+            queryset = queryset[:recipes_limit]
         return RecipeMinifieldSerializer(queryset, many=True).data
