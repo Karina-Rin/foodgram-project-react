@@ -24,7 +24,7 @@ services:
   backend:
     container_name: foodgram_backend
     build:
-      context: ../backend
+      context: ./backend
       dockerfile: Dockerfile
     restart: always
     volumes:
@@ -39,7 +39,7 @@ services:
   frontend:
     container_name: foodgram_frontend
     build:
-      context: ../frontend
+      context: ./frontend
       dockerfile: Dockerfile
     volumes:
       - frontend_value:../frontend/:/app/result_build/
