@@ -1,5 +1,4 @@
 version: '3.3'
-name: FoorgramRin
 
 volumes:
   db_value:
@@ -27,18 +26,18 @@ services:
       - static_value:/app/static/
       - media_value:/app/media/
       - redoc_value:/app/api/docs/
-    depends_on:
-      - db
     env_file:
       - ./.env
-
-  frontend:
-    container_name: foodgram_frontend
-    image: karinarin/foodgram_frontend:latest
-    volumes:
-      - frontend_value:../frontend/:/app/result_build/
     depends_on:
-      - backend
+      - db
+
+  #  frontend:
+  #    container_name: foodgram_frontend
+  #    image: karinarin/foodgram_frontend:latest
+  #    volumes:
+  #      - frontend_value:../frontend/:/app/result_build/
+  #    depends_on:
+  #      - backend
 
   nginx:
     container_name: nginx
@@ -53,4 +52,4 @@ services:
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
-      - frontend
+      - backend
