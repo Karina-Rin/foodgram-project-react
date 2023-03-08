@@ -20,27 +20,32 @@ services:
       - db_value:/var/lib/postgresql/data/
     env_file:
       - ./.env
+    restart: always
 
   backend:
     container_name: foodgram_backend
-    image: karinarin/foodgram_backend:latest
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
     restart: always
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
       - redoc_value:/app/api/docs/
     env_file:
-      - ./.env
+      - .env
     depends_on:
       - db
 
   frontend:
     container_name: foodgram_frontend
-    image: karinarin/foodgram_frontend:latest
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
       - frontend_value:../frontend/:/app/result_build/
     depends_on:
-      - backend
+      - db
 
   nginx:
     container_name: nginx
@@ -55,4 +60,5 @@ services:
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
+      - backend
       - frontend
