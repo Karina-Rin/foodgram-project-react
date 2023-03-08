@@ -4,7 +4,6 @@ volumes:
   db_value:
   static_value:
   media_value:
-  redoc_value:
   frontend_value:
 
 
@@ -22,21 +21,20 @@ services:
     restart: always
 
   backend:
-    container_name: foodgram_backend
-    image: karinarin/foodgram_backend:latest
+    container_name: foodgram-backend
+    image: karinarin/foodgram-backend:latest
     restart: always
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
-      - redoc_value:/app/api/docs/
-    env_file:
-      - .env
     depends_on:
       - db
+    env_file:
+      - .env
 
   frontend:
-    container_name: foodgram_frontend
-    image: karinarin/foodgram_frontend:latest
+    container_name: foodgram-frontend
+    image: karinarin/foodgram-frontend:latest
     volumes:
       - frontend_value:../frontend/:/app/result_build/
     depends_on:
@@ -50,8 +48,8 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./frontend/build:/usr/share/nginx/html/
-      - ./docs/:/usr/share/nginx/html/api/docs/
+      - ../frontend/build:/usr/share/nginx/html/
+      - ../docs/:/usr/share/nginx/html/api/docs/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
