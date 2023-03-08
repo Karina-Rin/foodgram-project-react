@@ -17,12 +17,12 @@ services:
     volumes:
       - db_value:/var/lib/postgresql/data/
     env_file:
-      - ./.env
+      - .env
     restart: always
 
   backend:
-    container_name: foodgram-backend
-    image: karinarin/foodgram-backend:latest
+    container_name: foodgram_backend
+    image: karinarin/foodgram_backend:latest
     restart: always
     volumes:
       - static_value:/app/static/
@@ -33,8 +33,8 @@ services:
       - .env
 
   frontend:
-    container_name: foodgram-frontend
-    image: karinarin/foodgram-frontend:latest
+    container_name: foodgram_frontend
+    image: karinarin/foodgram_frontend:latest
     volumes:
       - frontend_value:../frontend/:/app/result_build/
     depends_on:
