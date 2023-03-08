@@ -67,31 +67,26 @@ python manage.py createsuperuser
 ```
 
 ### Запуск проекта
-
-В папке infra выполните команду docker-compose up. 
-Проект запустится на адресе http://localhost.
-Увидеть спецификацию API можно по адресу http://localhost/api/docs/
-
 #### Тестовые данные для проверки ревьюером:
 
 ```bash
 # Админ
-http://localhost/admin
+http://62.84.120.208/admin
 Login: 
 Password: 
 
 # Тестовый пользователь
-http://localhost/
+http://62.84.120.208/
 Email: 
 Password: 
 ```
 
-### Адрес проекта
+#### Адрес проекта
 http://62.84.120.208/
 
-### Документация
+#### Документация
 ```
-http://localhost/redoc
+http://62.84.120.208/api/docs/
 ```
 
 ## Авторы
