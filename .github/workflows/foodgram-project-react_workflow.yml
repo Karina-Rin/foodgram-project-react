@@ -59,7 +59,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         #passphrase: ${{ secrets.PASSPHRASE }}
         script: |
-          sudo docker-compose stop
+          sudo docker-compose stop ***_web_1
           sudo docker-compose rm backend
           touch .env
           echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
