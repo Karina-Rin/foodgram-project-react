@@ -23,9 +23,7 @@ services:
 
   backend:
     container_name: foodgram_backend
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: karinarin/foodgram_backend:latest
     restart: always
     volumes:
       - static_value:/app/static/
@@ -38,9 +36,7 @@ services:
 
   frontend:
     container_name: foodgram_frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: karinarin/foodgram_frontend:latest
     volumes:
       - frontend_value:../frontend/:/app/result_build/
     depends_on:
