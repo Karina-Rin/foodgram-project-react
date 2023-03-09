@@ -28,18 +28,28 @@ git clone https://github.com/Karina-Rin/foodgram-project-react.git
 2. Создаем `.env` файл с переменными окружения для работы с базой данных в 
 директории `infra/` по примеру файла `.env.sample`
 
-3. Создаем и активируем виртуальное окружение, обновляем pip:
+3. Запускаем сборку образа в директории backend:
+```
+docker build -t <DOCKER_USERNAME>/foodgram:<tag> .
+```
+
+4. Запускаем контейнеры:
+```
+docker-compose up -d --build
+```
+
+5. Создаем и активируем виртуальное окружение, обновляем pip:
 ```
 python -m venv venv
 . venv/bin/activate
 python -m pip install --upgrade pip
 ```
 
-4. Устанавливаем зависимости:
+6. Устанавливаем зависимости:
 ```
 pip install -r requirements.txt
 ```
-5. Подготавливаем репозиторий на GitHub
+7. Подготавливаем репозиторий на GitHub
 
 В репозитории на GitHub прописываем Secrets:
 ```
@@ -53,17 +63,36 @@ TELEGRAM_TO - ID своего телеграм-аккаунта. Узнать м
 TELEGRAM_TOKEN - токен вашего бота. Получить можно у бота `@BotFather`
 ```
 
-6. Запускаем сборку контейнеров:
+8. Запускаем сборку контейнеров:
 ```
 docker-compose up -d --build
 ```
 
-7. Внутри контейнера выполняем миграции, собираем статику и создаем суперюзера:
+9. Переходим в контейнер
 ```
 docker container exec -it <CONTAINER ID> bash
+```
+Выполняем миграции
+```
+python manage.py makemigrations users
+python manage.py makemigrations recipes
+```
+Применяем миграции
+```
 python manage.py migrate
-python manage.py collectastatic  --no-input
+```
+Создаем суперюзера
+```
 python manage.py createsuperuser
+```
+Собираем статистику
+```
+python manage.py collectstatic --no-input
+```
+Наполняем данными
+```
+python manage.py importcsv --filename ingredients.csv --model_name Ingredient --app_name recipes
+python manage.py importcsv --filename tags.csv --model_name Tag --app_name recipes
 ```
 
 ### Запуск проекта

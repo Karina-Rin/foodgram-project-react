@@ -66,8 +66,8 @@ class Follow(models.Model):
         blank=True,
         null=True,
         on_delete=models.CASCADE,
-        related_name="following",
-        verbose_name="Автор",
+        related_name="followed_by",
+        verbose_name="Автор рецепта",
         help_text="Выберите автора для подписки",
     )
 
@@ -75,10 +75,8 @@ class Follow(models.Model):
         verbose_name = "Подписка"
         verbose_name_plural = "Подписки"
         constraints = [
-            UniqueConstraint(
-                fields=["user", "following"], name="follow_unique"
-            )
+            UniqueConstraint(fields=["user", "author"], name="follow_unique")
         ]
 
     def __str__(self):
-        return self.user.username
+        return f"{self.user} follows {self.author}"

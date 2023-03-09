@@ -32,19 +32,19 @@ class FollowViewSet(viewsets.ModelViewSet):
     permission_classes = IsAdmin
 
     def get_queryset(self):
-        return get_list_or_404(User, following__user=self.request.user)
+        return get_list_or_404(User, follow__user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         user_id = self.kwargs.get("users_id")
         user = get_object_or_404(User, id=user_id)
-        Follow.objects.create(user=request.user, following=user)
+        Follow.objects.create(user=request.user, follow=user)
         return Response(HTTPStatus.CREATED)
 
     def delete(self, request, *args, **kwargs):
         author_id = self.kwargs["users_id"]
         user_id = request.user.id
         subscribe = get_object_or_404(
-            Follow, user__id=user_id, following__id=author_id
+            Follow, user__id=user_id, follow__id=author_id
         )
         subscribe.delete()
         return Response(HTTPStatus.NO_CONTENT)

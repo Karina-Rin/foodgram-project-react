@@ -1,4 +1,4 @@
-version: '3.3'
+version: '3.8'
 
 volumes:
   db_value:
@@ -10,7 +10,6 @@ volumes:
 services:
 
   db:
-    container_name: db
     image: postgres:13-alpine
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
@@ -21,8 +20,7 @@ services:
     restart: always
 
   backend:
-    container_name: foodgram_backend
-    image: karinarin/foodgram_backend:latest
+    image: karinarin/foodgram:v.1.0.1
     restart: always
     volumes:
       - static_value:/app/static/
@@ -33,15 +31,13 @@ services:
       - .env
 
   frontend:
-    container_name: foodgram_frontend
-    image: karinarin/foodgram_frontend:latest
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
-      - frontend_value:../frontend/:/app/result_build/
-    depends_on:
-      - db
+      - frontend_value:/app/result_build/
 
   nginx:
-    container_name: nginx
     image: nginx:1.19.3
     restart: always
     ports:

@@ -19,7 +19,7 @@ class CommonFollowSerializer(metaclass=serializers.SerializerMetaclass):
         if request.user.is_anonymous:
             return False
         if Follow.objects.filter(
-            user=request.user, following__id=obj.id
+            user=request.user, follow__id=obj.id
         ).exists():
             return True
         else:
