@@ -30,13 +30,10 @@ services:
       - ./.env
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    image: karinarin/foodgram_frontend:v.1.0.2
+    build: ../frontend
+    #    image: karinarin/foodgram_frontend:v.1.0.2
     volumes:
-      - front_value:./frontend/:/app/result_build/
-      - static_value:/app/result_build/build/static/
+      - front_value:../frontend/:/app/result_build/
     depends_on:
       - db
 
