@@ -4,7 +4,6 @@ volumes:
   db_value:
   static_value:
   media_value:
-  frontend_value:
 
 
 services:
@@ -27,18 +26,15 @@ services:
     depends_on:
       - db
     env_file:
-      - .env
+      - ./.env
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: karinarin/foodgram_frontend:v.1.0.2
     volumes:
-      - frontend_value../frontend/:/app/result_build/
+      - ../frontend/:/app/result_build/
 
   nginx:
     image: nginx:1.19.3
-    restart: always
     ports:
       - "80:80"
     volumes:
