@@ -32,7 +32,7 @@ services:
   frontend:
     image: karinarin/foodgram_frontend:v.1.0.2
     volumes:
-      - front_value:Dev/foodgram-project-react/frontend/:/app/result_build/
+      - front_value:./frontend/:/app/result_build/
 
   nginx:
     image: nginx:1.19.3
@@ -40,7 +40,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../frontend/build:/usr/share/nginx/html/
+      - ./frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
