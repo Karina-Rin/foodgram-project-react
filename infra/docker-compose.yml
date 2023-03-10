@@ -30,10 +30,9 @@ services:
       - ./.env
 
   frontend:
-    build: ../frontend
-    #    image: karinarin/foodgram_frontend:v.1.0.2
+    image: karinarin/foodgram_frontend:v.1.0.2
     volumes:
-      - front_value:../frontend/:/app/result_build/
+      - front_value:/app/result_build/
     depends_on:
       - db
 
