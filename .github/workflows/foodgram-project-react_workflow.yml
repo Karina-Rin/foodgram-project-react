@@ -59,6 +59,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         #passphrase: ${{ secrets.PASSPHRASE }}
         script: |
+          sudo docker pull karinarin/backend
           sudo docker-compose stop
           sudo docker-compose rm backend
           touch .env
