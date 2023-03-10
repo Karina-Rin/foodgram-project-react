@@ -2,31 +2,22 @@ from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import (
-    Ingredient,
-    IngredientAmount,
-    Recipe,
-    RecipeFavorite,
-    ShoppingCart,
-    Tag,
-)
+from recipes.models import (Ingredient, IngredientAmount, Recipe,
+                            RecipeFavorite, ShoppingCart, Tag)
 from users.models import Follow, User
 
 
-class CommonFollowSerializer(metaclass=serializers.SerializerMetaclass):
+class CommonFollowSerializer(serializers.SerializerMetaclass):
     def get_is_subscribed(self, obj):
         request = self.context.get("request")
         if request.user.is_anonymous:
             return False
-        if Follow.objects.filter(
+        return Follow.objects.filter(
             user=request.user, follow__id=obj.id
-        ).exists():
-            return True
-        else:
-            return False
+        ).exists()
 
 
-class CommonRecipeSerializer(metaclass=serializers.SerializerMetaclass):
+class CommonRecipeSerializer(serializers.SerializerMetaclass):
     def get_is_favorited(self, obj):
         request = self.context.get("request")
         if request.user.is_anonymous:
@@ -35,22 +26,18 @@ class CommonRecipeSerializer(metaclass=serializers.SerializerMetaclass):
             user=request.user, recipe__id=obj.id
         ).exists():
             return True
-        else:
-            return False
+        return False
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get("request")
         if request.user.is_anonymous:
             return False
-        if ShoppingCart.objects.filter(
+        return ShoppingCart.objects.filter(
             user=request.user, recipe__id=obj.id
-        ).exists():
-            return True
-        else:
-            return False
+        ).exists()
 
 
-class CommonCount(metaclass=serializers.SerializerMetaclass):
+class CommonCount(serializers.SerializerMetaclass):
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author__id=obj.id).count()
 
@@ -255,7 +242,6 @@ class RecipeCreateSerializer(
             **validated_data,
         )
         self.uniq_ingredients_and_tags(tags_data, ingredients)
-        return recipe
 
     def update(self, instance, validated_data):
         tags_data = validated_data.pop("tags")

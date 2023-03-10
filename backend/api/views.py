@@ -10,13 +10,25 @@ from rest_framework.response import Response
 
 from api.filters import IngredientSearchFilter, RecipeFilters
 from api.permissions import IsAdmin
-from api.serializers import (CommonFollowSerializer, FavoriteRecipeSerializer,
-                             IngredientSerializer, RecipeCreateSerializer,
-                             RecipeSerializer, RegistrationUserSerializer,
-                             ShoppingCartSerializer, TagSerializer)
+from api.serializers import (
+    CommonFollowSerializer,
+    FavoriteRecipeSerializer,
+    IngredientSerializer,
+    RecipeCreateSerializer,
+    RecipeSerializer,
+    RegistrationUserSerializer,
+    ShoppingCartSerializer,
+    TagSerializer,
+)
 from api.utils import delete_for_actions, get_cart_txt, post_for_actions
-from recipes.models import (Ingredient, IngredientAmount, Recipe,
-                            RecipeFavorite, ShoppingCart, Tag)
+from recipes.models import (
+    Ingredient,
+    IngredientAmount,
+    Recipe,
+    RecipeFavorite,
+    ShoppingCart,
+    Tag,
+)
 from users.models import Follow, User
 
 
@@ -71,8 +83,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.request.method == "GET":
             return RecipeSerializer
-        else:
-            return RecipeCreateSerializer
+        return RecipeCreateSerializer
 
 
 class IngredientViewSet(viewsets.ModelViewSet):

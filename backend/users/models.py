@@ -10,29 +10,29 @@ class User(AbstractUser):
         max_length=settings.MAX_USERNAME_LENGTH,
         unique=True,
         db_index=True,
-        help_text="Обязательное поле. f'Максимум {MAX_USERNAME_LENGTH} символов.'",
+        help_text="f'Максимум {MAX_USERNAME_LENGTH} символов.'",
     )
     password = models.CharField(
         verbose_name="Пароль",
         max_length=settings.MAX_PASSWORD_LENGTH,
-        help_text="Обязательное поле. f'Максимум {MAX_PASSWORD_LENGTH} символов.'",
+        help_text="f'Максимум {MAX_PASSWORD_LENGTH} символов.'",
     )
     email = models.EmailField(
         verbose_name="Адрес электронной почты",
         max_length=settings.MAX_EMAIL_LENGTH,
         unique=True,
         db_index=True,
-        help_text="Обязательное поле. f'Максимум {MAX_EMAIL_LENGTH} символов.'",
+        help_text="f'Максимум {MAX_EMAIL_LENGTH} символов.'",
     )
     first_name = models.CharField(
         verbose_name="Имя",
         max_length=settings.MAX_USERNAME_LENGTH,
-        help_text="Обязательное поле. f'Максимум {MAX_USERNAME_LENGTH} символов.'",
+        help_text="f'Максимум {MAX_USERNAME_LENGTH} символов.'",
     )
     last_name = models.CharField(
         verbose_name="Фамилия",
         max_length=settings.MAX_USERNAME_LENGTH,
-        help_text="Обязательное поле. f'Максимум {MAX_USERNAME_LENGTH} символов.'",
+        help_text="f'Максимум {MAX_USERNAME_LENGTH} символов.'",
     )
 
     USERNAME_FIELD = "username"
