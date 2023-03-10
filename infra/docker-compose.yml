@@ -7,7 +7,6 @@ volumes:
 
 
 services:
-
   db:
     image: postgres:13-alpine
     environment:
@@ -31,10 +30,10 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile
     volumes:
-      - ./frontend/:/app/result_build/
+      - ../frontend/:/app/result_build/
 
   nginx:
     image: nginx:1.19.3
