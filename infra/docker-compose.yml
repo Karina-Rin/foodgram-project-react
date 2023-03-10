@@ -7,6 +7,7 @@ volumes:
 
 
 services:
+
   db:
     image: postgres:13-alpine
     environment:
