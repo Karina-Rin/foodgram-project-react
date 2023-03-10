@@ -4,7 +4,6 @@ volumes:
   db_value:
   static_value:
   media_value:
-  front_value:
 
 
 services:
@@ -32,9 +31,7 @@ services:
   frontend:
     image: karinarin/foodgram_frontend:v.1.0.2
     volumes:
-      - front_value:/app/result_build/
-    depends_on:
-      - db
+      - ../frontend/:/app/result_build/
 
   nginx:
     image: nginx:1.19.3
