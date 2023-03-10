@@ -33,23 +33,18 @@ git clone https://github.com/Karina-Rin/foodgram-project-react.git
 docker build -t <DOCKER_USERNAME>/foodgram:<tag> .
 ```
 
-4. Запускаем контейнеры:
-```
-docker-compose up -d --build
-```
-
-5. Создаем и активируем виртуальное окружение, обновляем pip:
+4. Создаем и активируем виртуальное окружение, обновляем pip:
 ```
 python -m venv venv
 . venv/bin/activate
 python -m pip install --upgrade pip
 ```
 
-6. Устанавливаем зависимости:
+5. Устанавливаем зависимости:
 ```
 pip install -r requirements.txt
 ```
-7. Подготавливаем репозиторий на GitHub
+6. Подготавливаем репозиторий на GitHub
 
 В репозитории на GitHub прописываем Secrets:
 ```
@@ -63,36 +58,36 @@ TELEGRAM_TO - ID своего телеграм-аккаунта. Узнать м
 TELEGRAM_TOKEN - токен вашего бота. Получить можно у бота `@BotFather`
 ```
 
-8. Запускаем сборку контейнеров:
+7. Запускаем сборку контейнеров:
 ```
 docker-compose up -d --build
 ```
 
-9. Переходим в контейнер
+8. Переходим в контейнер
 ```
-docker container exec -it <CONTAINER ID> bash
+sudo docker container exec -it <CONTAINER ID> bash
 ```
 Выполняем миграции
 ```
-python manage.py makemigrations users
-python manage.py makemigrations recipes
+sudo python manage.py makemigrations users
+sudo python manage.py makemigrations recipes
 ```
 Применяем миграции
 ```
-python manage.py migrate
+sudo python manage.py migrate
 ```
 Создаем суперюзера
 ```
-python manage.py createsuperuser
+sudo python manage.py createsuperuser
 ```
 Собираем статистику
 ```
-python manage.py collectstatic --no-input
+sudo python manage.py collectstatic --no-input
 ```
 Наполняем данными
 ```
-python manage.py importcsv --filename ingredients.csv --model_name Ingredient --app_name recipes
-python manage.py importcsv --filename tags.csv --model_name Tag --app_name recipes
+sudo python manage.py importcsv --filename ingredients.csv --model_name Ingredient --app_name recipes
+sudo python manage.py importcsv --filename tags.csv --model_name Tag --app_name recipes
 ```
 
 ### Запуск проекта

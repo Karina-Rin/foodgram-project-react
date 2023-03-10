@@ -1,12 +1,13 @@
-name: foodgram-project-react_workflow.yml
+name: foodgram-project-react_workflow
 
 on: [push]
 
 jobs:
   tests:
-    name: tests
+    name: Testing
     runs-on: ubuntu-latest
     steps:
+    - name: Check out the repo
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -18,15 +19,15 @@ jobs:
         pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
         pip install -r backend/requirements.txt
 
-#    - name: Test with flake8
-#     run: |
-#        python -m flake8 backend 
+    - name: Test with flake8
+      run: |
+        python -m flake8
 
   build_and_push_to_docker_hub:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     needs: tests
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+#    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     steps:
     - name: Check out the repo
       uses: actions/checkout@v2 
@@ -40,12 +41,12 @@ jobs:
     - name: Push to Docker Hub
       uses: docker/build-push-action@v2 
       with:
+        context: ./backend/
         push: true
-        context: ./backend
-        tags: karinarin/backend:latest
+        tags: karinarin/foodgram:v.1.0.1
 
   deploy:
-    name: deploy
+    name: Deploy server
     runs-on: ubuntu-latest
     needs: build_and_push_to_docker_hub
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
@@ -58,8 +59,10 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         #passphrase: ${{ secrets.PASSPHRASE }}
         script: |
+          cd foodgram/infra/
           sudo docker-compose stop
-          sudo docker-compose rm backend
+          echo y|sudo docker-compose rm backend
+          sudo docker rmi karinarin/foodgram_backend
           touch .env
           echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
           echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
@@ -71,7 +74,7 @@ jobs:
           sudo docker-compose up -d
   
   send_message:
-    name: Send message
+    name: Send message in Telegram
     runs-on: ubuntu-latest
     needs: deploy
     steps:
