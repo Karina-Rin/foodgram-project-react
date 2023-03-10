@@ -4,6 +4,7 @@ volumes:
   db_value:
   static_value:
   media_value:
+  front_value:
 
 
 services:
@@ -14,7 +15,7 @@ services:
     volumes:
       - db_value:/var/lib/postgresql/data/
     env_file:
-      - .env
+      - ./.env
     restart: always
 
   backend:
@@ -31,7 +32,7 @@ services:
   frontend:
     image: karinarin/foodgram_frontend:v.1.0.2
     volumes:
-      - ../frontend/:/app/result_build/
+      - front_value:Dev/foodgram-project-react/frontend/:/app/result_build/
 
   nginx:
     image: nginx:1.19.3
