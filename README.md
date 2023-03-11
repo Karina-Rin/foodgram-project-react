@@ -65,29 +65,29 @@ docker-compose up -d --build
 
 8. Переходим в контейнер
 ```
-sudo docker container exec -it <CONTAINER ID> bash
+docker container exec -it <CONTAINER ID> bash
 ```
 Выполняем миграции
 ```
-sudo python manage.py makemigrations users
-sudo python manage.py makemigrations recipes
+python manage.py makemigrations users
+python manage.py makemigrations recipes
 ```
 Применяем миграции
 ```
-sudo python manage.py migrate
+python manage.py migrate
 ```
 Создаем суперюзера
 ```
-sudo python manage.py createsuperuser
+python manage.py createsuperuser
 ```
 Собираем статистику
 ```
-sudo python manage.py collectstatic --no-input
+python manage.py collectstatic --no-input
 ```
 Наполняем данными
 ```
-sudo python manage.py importcsv --filename ingredients.csv --model_name Ingredient --app_name recipes
-sudo python manage.py importcsv --filename tags.csv --model_name Tag --app_name recipes
+python manage.py importcsv --filename ingredients.csv --model_name Ingredient --app_name recipes
+python manage.py importcsv --filename tags.csv --model_name Tag --app_name recipes
 ```
 
 ### Запуск проекта
