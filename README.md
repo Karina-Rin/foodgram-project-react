@@ -84,11 +84,6 @@ python manage.py createsuperuser
 ```
 python manage.py collectstatic --no-input
 ```
-Наполняем данными
-```
-python manage.py importcsv --filename ingredients.csv --model_name Ingredient --app_name recipes
-python manage.py importcsv --filename tags.csv --model_name Tag --app_name recipes
-```
 
 #### Тестовые данные для проверки ревьюером:
 
