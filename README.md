@@ -90,7 +90,6 @@ python manage.py importcsv --filename ingredients.csv --model_name Ingredient --
 python manage.py importcsv --filename tags.csv --model_name Tag --app_name recipes
 ```
 
-### Запуск проекта
 #### Тестовые данные для проверки ревьюером:
 
 ```bash
