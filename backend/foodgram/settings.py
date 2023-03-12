@@ -14,7 +14,7 @@ SECRET_KEY = "ns6(14uyb7kn3q10kkz+=y8#k!g$$+qhs)ho+6^nzy=9xoru3g"
 DEBUG = True
 
 # ALLOWED_HOSTS = [os.getenv("ALLOWED_HOSTS", "*"), "*"]
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "62.84.120.208", "db"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "62.84.120.208", "backend", "db"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
