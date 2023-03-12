@@ -183,7 +183,7 @@ class RecipeFavorite(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=("user", "favorite_recipe"), name="unique favourite"
+                fields=("user", "recipe"), name="unique favourite"
             )
         ]
         verbose_name = "Избранное"
@@ -192,8 +192,7 @@ class RecipeFavorite(models.Model):
 
     def __str__(self):
         return (
-            f"Пользователь: {self.user.username}"
-            f"рецепт: {self.favorite_recipe.name}"
+            f"Пользователь: {self.user.username}" f"рецепт: {self.recipe.name}"
         )
 
 

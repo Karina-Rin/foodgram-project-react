@@ -94,7 +94,7 @@ python manage.py importcsv --filename tags.csv --model_name Tag --app_name recip
 
 ```bash
 # Админ
-http://62.84.120.208/admin
+http://62.84.120.208/admin/
 Login: 
 Password: 
 

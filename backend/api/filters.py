@@ -1,16 +1,13 @@
-import django_filters
-from django_filters import rest_framework as django_filter
-from rest_framework import filters
-
+from django_filters import FilterSet, filters
 from recipes.models import Ingredient, Recipe
 from users.models import User
 
 
-class RecipeFilters(django_filter.FilterSet):
-    author = django_filter.ModelChoiceFilter(queryset=User.objects.all())
-    tags = django_filter.AllValuesMultipleFilter(field_name="tags__slug")
-    is_favorited = django_filter.BooleanFilter(method="get_is_favorited")
-    is_in_shopping_cart = django_filter.BooleanFilter(
+class RecipeFilters(FilterSet):
+    author = filters.ModelChoiceFilter(queryset=User.objects.all())
+    tags = filters.AllValuesMultipleFilter(field_name="tags__slug")
+    is_favorited = filters.BooleanFilter(method="get_is_favorited")
+    is_in_shopping_cart = filters.BooleanFilter(
         method="get_is_in_shopping_cart"
     )
 
@@ -29,10 +26,8 @@ class RecipeFilters(django_filter.FilterSet):
         return queryset.all()
 
 
-class IngredientSearchFilter(filters.SearchFilter):
-    sname = django_filters.CharFilter(
-        field_name="name", lookup_expr="istartswith"
-    )
+class IngredientSearchFilter(FilterSet):
+    name = filters.CharFilter(field_name="name", lookup_expr="istartswith")
 
     class Meta:
         model = Ingredient
