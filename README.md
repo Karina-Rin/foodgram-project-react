@@ -98,7 +98,6 @@ Login: adminrin
 Password: 1297aRR14
 
 # Тестовый пользователь
-http://62.84.120.208/
 login: testuser
 Password: 1911test
 Email:aa@im.ru
