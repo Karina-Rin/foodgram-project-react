@@ -14,7 +14,14 @@ SECRET_KEY = "ns6(14uyb7kn3q10kkz+=y8#k!g$$+qhs)ho+6^nzy=9xoru3g"
 DEBUG = True
 
 # ALLOWED_HOSTS = [os.getenv("ALLOWED_HOSTS", "*"), "*"]
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "62.84.120.208", "backend", "db"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "62.84.120.208",
+    "backend",
+    "[::1]",
+    "db",
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -65,9 +72,7 @@ WSGI_APPLICATION = "foodgram.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": os.getenv(
-            "DB_ENGINE", default="django.db.backends.postgresql"
-        ),
+        "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
         "NAME": os.getenv("DB_NAME"),
         "USER": os.getenv("POSTGRES_USER"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
