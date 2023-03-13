@@ -43,7 +43,7 @@ jobs:
       with:
         context: ./backend/
         push: true
-        tags: karinarin/foodgram:v.1.0.1
+        tags: karinarin/foodgram_backend:v.1.0.1
 
   deploy:
     name: Deploy server
