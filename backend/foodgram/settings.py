@@ -97,8 +97,8 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/admin/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static/admin")
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -132,9 +132,9 @@ DJOSER = {
 }
 
 MAX_LEGTH = 16
-MAX_EMAIL_LENGTH = 254
-MAX_USERNAME_LENGTH = 150
-MAX_PASSWORD_LENGTH = 150
+# MAX_EMAIL_LENGTH = 254
+# MAX_USERNAME_LENGTH = 150
+# MAX_PASSWORD_LENGTH = 150
 
 RECIPE_IMAGE_SIZE = 500, 300
 EMPTY_VALUE_DISPLAY = "-пусто-"

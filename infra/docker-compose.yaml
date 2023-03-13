@@ -1,9 +1,10 @@
 version: '3.8'
 
 volumes:
-  db_value:
+  postgres_data:
   static_value:
   media_value:
+  redoc:
 
 
 services:
@@ -12,17 +13,18 @@ services:
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
-      - db_value:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env
     restart: always
 
   backend:
-    image: karinarin/foodgram:v.1.0.1
+    image: karinarin/foodgram_backend:v.1.0.1
     restart: always
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
+      - redoc:/app/api/docs/
     depends_on:
       - db
     env_file:
@@ -40,7 +42,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
+      - redoc:/usr/share/nginx/html/api/docs/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:

@@ -84,26 +84,31 @@ python manage.py createsuperuser
 ```
 python manage.py collectstatic --no-input
 ```
+Наполняем базу данными
+```
+python manage.py loaddata ingredients.json
+```
 
 #### Тестовые данные для проверки ревьюером:
 
 ```bash
 # Админ
-http://62.84.120.208/admin/
-Login: 
-Password: 
+http://localhost/admin/
+Login: adminrin
+Password: 1297aRR14
 
 # Тестовый пользователь
 http://62.84.120.208/
-Email: 
-Password: 
+login: testuser
+Password: 1911test
+Email:aa@im.ru
 ```
 
 #### Адрес проекта
 http://62.84.120.208/
 
 #### Документация
-http://62.84.120.208/api/docs/
+http://localhost/api/docs/
 
 ## Авторы
 Karina-Rin

@@ -1,38 +1,43 @@
-from django.conf import settings
+# from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import UniqueConstraint
 
 
+MAX_EMAIL_LENGTH = 254
+MAX_USERNAME_LENGTH = 150
+MAX_PASSWORD_LENGTH = 150
+
+
 class User(AbstractUser):
     username = models.CharField(
         verbose_name="Логин",
-        max_length=settings.MAX_USERNAME_LENGTH,
+        max_length=MAX_USERNAME_LENGTH,
         unique=True,
         db_index=True,
-        help_text="f'Максимум {MAX_USERNAME_LENGTH} символов.'",
+        help_text=("Максимум {MAX_USERNAME_LENGTH} символов."),
     )
     password = models.CharField(
         verbose_name="Пароль",
-        max_length=settings.MAX_PASSWORD_LENGTH,
-        help_text="f'Максимум {MAX_PASSWORD_LENGTH} символов.'",
+        max_length=MAX_PASSWORD_LENGTH,
+        help_text=("Максимум {MAX_PASSWORD_LENGTH} символов."),
     )
     email = models.EmailField(
         verbose_name="Адрес электронной почты",
-        max_length=settings.MAX_EMAIL_LENGTH,
+        max_length=MAX_EMAIL_LENGTH,
         unique=True,
         db_index=True,
-        help_text="f'Максимум {MAX_EMAIL_LENGTH} символов.'",
+        help_text=("Максимум {MAX_EMAIL_LENGTH} символов."),
     )
     first_name = models.CharField(
         verbose_name="Имя",
-        max_length=settings.MAX_USERNAME_LENGTH,
-        help_text="f'Максимум {MAX_USERNAME_LENGTH} символов.'",
+        max_length=MAX_USERNAME_LENGTH,
+        help_text=("Максимум {MAX_USERNAME_LENGTH} символов."),
     )
     last_name = models.CharField(
         verbose_name="Фамилия",
-        max_length=settings.MAX_USERNAME_LENGTH,
-        help_text="f'Максимум {MAX_USERNAME_LENGTH} символов.'",
+        max_length=MAX_USERNAME_LENGTH,
+        help_text=("Максимум {MAX_USERNAME_LENGTH} символов."),
     )
 
     USERNAME_FIELD = "username"
