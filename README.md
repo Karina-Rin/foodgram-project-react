@@ -46,7 +46,7 @@ pip install -r requirements.txt
 ```
 6. Подготавливаем репозиторий на GitHub
 
-В репозитории на GitHub прописываем Secrets:
+В репозитории на GitHub прописываем в разделе Secrets > Actions:
 ```
 DOCKER_USERNAME - имя пользователя DockerHub
 DOCKER_PASSWORD - пароль пользователя DockerHub
