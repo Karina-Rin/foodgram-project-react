@@ -1,20 +1,20 @@
 from django_filters import FilterSet, filters
 
-from recipes.models import Ingredient, Recipe
+from recipes.models import Ingredient, Recipe, Tag
 from users.models import User
 
 
 class RecipeFilters(FilterSet):
     author = filters.ModelChoiceFilter(queryset=User.objects.all())
-    tags = filters.AllValuesMultipleFilter(field_name="tags__slug")
+    tags = filters.AllValuesMultipleFilter(
+        field_name="tags__slug",
+        queryset=Tag.objects.all(),
+        to_field_name="slug",
+    )
     is_favorited = filters.BooleanFilter(method="get_is_favorited")
     is_in_shopping_cart = filters.BooleanFilter(
         method="get_is_in_shopping_cart"
     )
-
-    class Meta:
-        model = Recipe
-        fields = ("author", "tags", "is_favorited", "is_in_shopping_cart")
 
     def get_is_favorited(self, queryset, name, value):
         if self.request.user.is_authenticated and value:
@@ -24,7 +24,14 @@ class RecipeFilters(FilterSet):
     def get_is_in_shopping_cart(self, queryset, name, value):
         if self.request.user.is_authenticated and value:
             return queryset.filter(carts__user=self.request.user)
-        return queryset.all()
+        return queryset
+
+    class Meta:
+        model = Recipe
+        fields = (
+            "author",
+            "tags",
+        )
 
 
 class IngredientSearchFilter(FilterSet):

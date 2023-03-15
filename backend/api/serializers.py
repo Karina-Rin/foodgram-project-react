@@ -151,9 +151,7 @@ class ShoppingCartSerializer(serializers.Serializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(), many=True
-    )
+    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all())
     ingredients = IngredientAmountRecipeSerializer(source="ingredient_recipes")
     image = Base64ImageField(
         max_length=None,
