@@ -2,8 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from recipes.models import RecipeFavorite, ShoppingCart
-from users.models import Follow
+from recipes.models import RecipeFavorite, ShoppingCart, Subscribe
 
 
 def get_cart_txt(ingredients):
@@ -22,7 +21,7 @@ def get_cart_txt(ingredients):
 
 
 MODELS = {
-    Follow: {
+    Subscribe: {
         "name": "author",
         "err_exist": "Вы уже подписаны на этого пользователя!",
         "err_not_exist": "Вы не подписаны на этого пользователя!",
@@ -52,5 +51,4 @@ def delete_for_actions(user, obj, model):
     args = {MODELS[model]["name"]: obj, "user": user}
     if not model.objects.filter(**args).exists():
         raise serializers.ValidationError(MODELS[model]["err_not_exist"])
-    del_obj = get_object_or_404(model, **args)
-    del_obj.delete()
+    get_object_or_404(model, **args).delete()

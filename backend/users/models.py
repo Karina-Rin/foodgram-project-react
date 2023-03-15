@@ -1,43 +1,41 @@
-# from django.conf import settings
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models import UniqueConstraint
 
-
-MAX_EMAIL_LENGTH = 254
-MAX_USERNAME_LENGTH = 150
-MAX_PASSWORD_LENGTH = 150
+max_username_length = settings.MAX_USERNAME_LENGTH
+max_password_length = settings.MAX_PASSWORD_LENGTH
+max_email_length = settings.MAX_EMAIL_LENGTH
 
 
 class User(AbstractUser):
     username = models.CharField(
         verbose_name="Логин",
-        max_length=MAX_USERNAME_LENGTH,
+        max_length=max_username_length,
         unique=True,
         db_index=True,
-        help_text=("Максимум {MAX_USERNAME_LENGTH} символов."),
+        help_text=(f"Максимум {max_username_length} символов."),
     )
     password = models.CharField(
         verbose_name="Пароль",
-        max_length=MAX_PASSWORD_LENGTH,
-        help_text=("Максимум {MAX_PASSWORD_LENGTH} символов."),
+        max_length=max_password_length,
+        help_text=(f"Максимум {max_password_length} символов."),
     )
     email = models.EmailField(
         verbose_name="Адрес электронной почты",
-        max_length=MAX_EMAIL_LENGTH,
+        max_length=max_email_length,
         unique=True,
         db_index=True,
-        help_text=("Максимум {MAX_EMAIL_LENGTH} символов."),
+        help_text=(f"Максимум {max_email_length} символов."),
     )
     first_name = models.CharField(
         verbose_name="Имя",
-        max_length=MAX_USERNAME_LENGTH,
-        help_text=("Максимум {MAX_USERNAME_LENGTH} символов."),
+        max_length=max_username_length,
+        help_text=(f"Максимум {max_username_length} символов."),
     )
     last_name = models.CharField(
         verbose_name="Фамилия",
-        max_length=MAX_USERNAME_LENGTH,
-        help_text=("Максимум {MAX_USERNAME_LENGTH} символов."),
+        max_length=max_username_length,
+        help_text=(f"Максимум {max_username_length} символов."),
     )
 
     USERNAME_FIELD = "username"
@@ -54,34 +52,3 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username}, {self.email}"
-
-
-class Follow(models.Model):
-    user = models.ForeignKey(
-        User,
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-        related_name="follower",
-        verbose_name="Подписчик",
-        help_text="Выберите пользователя для подписки",
-    )
-    author = models.ForeignKey(
-        User,
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-        related_name="followed_by",
-        verbose_name="Автор рецепта",
-        help_text="Выберите автора для подписки",
-    )
-
-    class Meta:
-        verbose_name = "Подписка"
-        verbose_name_plural = "Подписки"
-        constraints = [
-            UniqueConstraint(fields=["user", "author"], name="follow_unique")
-        ]
-
-    def __str__(self):
-        return f"{self.user} follows {self.author}"
