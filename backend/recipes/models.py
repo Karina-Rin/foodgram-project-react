@@ -237,8 +237,12 @@ class ShoppingCart(models.Model):
         verbose_name_plural = "Список покупок"
 
     def __str__(self):
-        return f"ShoppingCart(id={self.id}, user={self.user.username}, \
-            recipe={self.recipe.name})"
+        return (
+            f"ShoppingCart("
+            f"id={self.id}, "
+            f"user={self.user.username}, "
+            f"recipe={self.recipe.name})"
+        )
 
 
 class Subscribe(models.Model):
