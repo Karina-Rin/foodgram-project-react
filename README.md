@@ -1,4 +1,4 @@
-![foodgram-project-react_workflow](https://github.com/Karina-Rin/foodgram-project-react/actions/workflows/foodgram-project-react_workflow.yml/badge.svg)
+![foodgram_workflow](https://github.com/Karina-Rin/foodgram-project-react/actions/workflows/foodgram-project-react_workflow.yml/badge.svg)
 
 # Foodgram
 
@@ -67,47 +67,51 @@ docker-compose up -d --build
 ```
 docker container exec -it <CONTAINER ID> bash
 ```
-Выполняем миграции
+9. Смотрим список миграций
+```
+python manage.py showmigrations
+```
+10. Выполняем миграции
 ```
 python manage.py makemigrations users
 python manage.py makemigrations recipes
 ```
-Применяем миграции
+11. Применяем миграции
 ```
 python manage.py migrate
 ```
-Создаем суперюзера
+12. Создаем суперюзера
 ```
 python manage.py createsuperuser
 ```
-Собираем статистику
+13. Собираем статистику
 ```
 python manage.py collectstatic --no-input
 ```
-Наполняем базу данными
+14. Наполняем базу данными
 ```
 python manage.py loaddata ingredients.json
 ```
 
-#### Тестовые данные для проверки ревьюером:
-
-```bash
-# Админ
-http://localhost/admin/
+### Тестовые данные для проверки ревьюером:
+Админ
+```
+http://62.84.120.208/admin/
 Login: adminrin
 Password: 1297aRR14
-
-# Тестовый пользователь
+```
+Тестовый пользователь
+```
 login: testuser
 Password: 1911test
 Email:aa@im.ru
 ```
 
-#### Адрес проекта
+### Адрес проекта
 http://62.84.120.208/
 
-#### Документация
-http://localhost/api/docs/
+### Документация
+http://62.84.120.208/api/docs/
 
 ## Авторы
 Karina-Rin

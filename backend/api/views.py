@@ -10,13 +10,25 @@ from rest_framework.response import Response
 
 from api.filters import IngredientSearchFilter, RecipeFilters
 from api.permissions import IsAdmin
-from api.serializers import (CommonFollowSerializer, FavoriteRecipeSerializer,
-                             IngredientSerializer, RecipeCreateSerializer,
-                             RecipeSerializer, RegistrationUserSerializer,
-                             ShoppingCartSerializer, TagSerializer)
+from api.serializers import (
+    CommonFollowSerializer,
+    FavoriteRecipeSerializer,
+    IngredientSerializer,
+    RecipeCreateSerializer,
+    RecipeSerializer,
+    RegistrationUserSerializer,
+    ShoppingCartSerializer,
+    TagSerializer,
+)
 from api.utils import delete_for_actions, get_cart_txt, post_for_actions
-from recipes.models import (Ingredient, IngredientAmount, Recipe,
-                            RecipeFavorite, ShoppingCart, Tag)
+from recipes.models import (
+    Ingredient,
+    IngredientAmount,
+    Recipe,
+    RecipeFavorite,
+    ShoppingCart,
+    Tag,
+)
 from users.models import Follow, User
 
 
@@ -29,7 +41,6 @@ class CustomUserViewSet(UserViewSet):
 
 class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = CommonFollowSerializer
-    permission_classes = IsAdmin
 
     def get_queryset(self):
         return get_list_or_404(User, follow__user=self.request.user)
@@ -59,7 +70,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = IsAdmin
+    permission_classes = (IsAdmin,)
     filter_class = RecipeFilters
     filter_backends = [
         DjangoFilterBackend,
@@ -76,7 +87,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
-    permission_classes = IsAdmin
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend, IngredientSearchFilter)
     pagination_class = None
@@ -110,7 +120,8 @@ class RecipeFavoriteViewSet(BaseFavoriteCartViewSet):
     model = RecipeFavorite
 
     @action(
-        detail=True, methods=["post", "delete"], permission_classes=IsAdmin
+        detail=True,
+        methods=["post", "delete"],
     )
     def favorite(self, request, pk):
         user = self.request.user
@@ -132,10 +143,10 @@ class ShoppingCartViewSet(BaseFavoriteCartViewSet):
     serializer_class = ShoppingCartSerializer
     queryset = ShoppingCart.objects.all()
     model = ShoppingCart
-    permission_classes = IsAdmin
 
     @action(
-        detail=True, methods=["post", "delete"], permission_classes=IsAdmin
+        detail=True,
+        methods=["post", "delete"],
     )
     def shopping_cart(self, request, pk):
         user = self.request.user
@@ -156,7 +167,6 @@ class ShoppingCartViewSet(BaseFavoriteCartViewSet):
         methods=[
             "get",
         ],
-        permission_classes=IsAdmin,
     )
     def download_shopping_cart(self, request):
         ingredients = (
