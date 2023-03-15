@@ -45,7 +45,7 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(
-        verbose_name="Название интредиента",
+        verbose_name="Название ингредиента",
         help_text="Введите название ингредиента",
         max_length=settings.MAX_LEGTH,
     )
