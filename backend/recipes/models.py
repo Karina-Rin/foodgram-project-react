@@ -195,7 +195,7 @@ class RecipeFavorite(models.Model):
         ]
         verbose_name = "Избранное"
         verbose_name_plural = "Избранные"
-        ordering = ("-created_at",)
+        ordering = ("id",)
 
     def __str__(self):
         return (

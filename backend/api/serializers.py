@@ -12,6 +12,11 @@ from users.models import User
 User = get_user_model()
 
 
+class RegistrationUserSerializer(UserCreateSerializer):
+    class Meta(UserCreateSerializer.Meta):
+        fields = UserCreateSerializer.Meta.fields + ("email",)
+
+
 class UserReadSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 

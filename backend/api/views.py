@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from djoser.serializers import UserCreateSerializer
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -10,7 +11,7 @@ from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
 from rest_framework.response import Response
 
 from api.filters import IngredientSearchFilter, RecipeFilter
-from api.mixins import CreateDeleteViewSet
+from api.mixins import ListCreateDeleteViewSet
 from api.permissions import IsAdmin
 from api.serializers import (FavoriteRecipeSerializer, IngredientSerializer,
                              RecipeCreateSerializer, RecipeSerializer,
@@ -114,7 +115,7 @@ class UserViewSet(UserViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class SubscribeViewSet(CreateDeleteViewSet):
+class SubscribeViewSet(ListCreateDeleteViewSet):
     serializer_class = SubscribeSerializer
 
     def get_queryset(self):
@@ -147,7 +148,7 @@ class SubscribeViewSet(CreateDeleteViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class FavoriteRecipeViewSet(CreateDeleteViewSet):
+class FavoriteRecipeViewSet(ListCreateDeleteViewSet):
     serializer_class = FavoriteRecipeSerializer
 
     def get_queryset(self):
@@ -183,7 +184,7 @@ class FavoriteRecipeViewSet(CreateDeleteViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ShoppingCartViewSet(CreateDeleteViewSet):
+class ShoppingCartViewSet(ListCreateDeleteViewSet):
     serializer_class = ShoppingCartSerializer
 
     def get_queryset(self):

@@ -17,14 +17,12 @@
 Подписка на публикации доступна только авторизованному пользователю. Страница 
 подписок доступна только владельцу.
 
-
 ## Запуск приложения
 
 1. Клонируем репозиторий:
 ```
 git clone https://github.com/Karina-Rin/foodgram-project-react.git
 ```
-
 2. Создаем `.env` файл с переменными окружения для работы с базой данных в 
 директории `infra/` по примеру файла `.env.sample`
 
@@ -32,14 +30,12 @@ git clone https://github.com/Karina-Rin/foodgram-project-react.git
 ```
 docker build -t <DOCKER_USERNAME>/foodgram:<tag> .
 ```
-
 4. Создаем и активируем виртуальное окружение, обновляем pip:
 ```
 python -m venv venv
 . venv/bin/activate
 python -m pip install --upgrade pip
 ```
-
 5. Устанавливаем зависимости:
 ```
 pip install -r requirements.txt
@@ -57,12 +53,10 @@ PASSPHRASE - кодовая фраза для ssh-ключа (если ваш ss
 TELEGRAM_TO - ID своего телеграм-аккаунта. Узнать можно у бота `@userinfobot`
 TELEGRAM_TOKEN - токен вашего бота. Получить можно у бота `@BotFather`
 ```
-
 7. Запускаем сборку контейнеров:
 ```
 docker-compose up -d --build
 ```
-
 8. Переходим в контейнер
 ```
 docker container exec -it <CONTAINER ID> bash
@@ -80,17 +74,17 @@ python manage.py makemigrations recipes
 ```
 python manage.py migrate
 ```
-12. Создаем суперюзера
-```
-python manage.py createsuperuser
-```
-13. Собираем статистику
+12. Собираем статистику
 ```
 python manage.py collectstatic --no-input
 ```
-14. Наполняем базу данными
+13. Наполняем базу данными
 ```
 python manage.py loaddata ingredients.json
+```
+14. Создаем суперюзера
+```
+python manage.py createsuperuser
 ```
 
 ### Тестовые данные для проверки ревьюером:
