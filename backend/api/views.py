@@ -6,20 +6,36 @@ from djoser.serializers import UserCreateSerializer
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    SAFE_METHODS,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 
 from api.filters import IngredientSearchFilter, RecipeFilter
 from api.mixins import ListCreateDeleteViewSet
 from api.permissions import IsAdmin
-from api.serializers import (FavoriteRecipeSerializer, IngredientSerializer,
-                             RecipeCreateSerializer, RecipeSerializer,
-                             SetPasswordSerializer, ShoppingCartSerializer,
-                             SubscribeSerializer, TagSerializer,
-                             UserCreateSerializer, UserReadSerializer)
-from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
-                            Subscribe, Tag)
+from api.serializers import (
+    FavoriteRecipeSerializer,
+    IngredientSerializer,
+    RecipeCreateSerializer,
+    RecipeSerializer,
+    SetPasswordSerializer,
+    ShoppingCartSerializer,
+    SubscribeSerializer,
+    TagSerializer,
+    UserCreateSerializer,
+    UserReadSerializer,
+)
+from recipes.models import (
+    Ingredient,
+    Recipe,
+    RecipeFavorite,
+    ShoppingCart,
+    Subscribe,
+    Tag,
+)
 
 User = get_user_model()
 
@@ -87,7 +103,6 @@ class SubscribeViewSet(ListCreateDeleteViewSet):
 
     @action(methods=("delete",), detail=True)
     def delete(self, request, user_id):
-        author = get_object_or_404(User, id=user_id)
         if not Subscribe.objects.filter(
             user=request.user, author_id=user_id
         ).exists():
