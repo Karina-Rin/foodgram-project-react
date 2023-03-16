@@ -8,27 +8,21 @@ from users.models import User
 class UserAdmin(UserAdmin):
     list_display = (
         "pk",
+        "id",
         "username",
         "email",
-        "is_active",
+        "first_name",
+        "last_name",
+        "last_login",
         "is_staff",
         "is_superuser",
-        "custom_field",
     )
-    list_filter = (
-        "is_active",
-        "is_staff",
-        "is_superuser",
-        "groups",
-    )
+    list_display_links = ("username", "first_name", "last_name")
+    list_filter = ("is_staff", "is_superuser", "first_name", "email")
     search_fields = (
         "username",
         "email",
         "first_name",
         "last_name",
     )
-
-    def custom_field(self, obj):
-        return obj.profile.custom_field
-
-    custom_field.short_description = "Пользовательское поле"
+    empty_value_display = "-пусто-"
