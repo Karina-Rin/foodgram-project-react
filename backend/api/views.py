@@ -24,54 +24,6 @@ from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
 User = get_user_model()
 
 
-class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
-    permission_classes = IsAdmin
-    filterset_class = RecipeFilter
-
-    def get_serializer_class(self):
-        if self.request.method in SAFE_METHODS:
-            return RecipeSerializer
-        return RecipeCreateSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-    @action(
-        detail=False,
-        methods=("get",),
-        url_path="download_shopping_cart",
-        pagination_class=None,
-    )
-    def download_file(self, request):
-        user = request.user
-        if not user.shopping_cart.exists():
-            return Response(
-                "В корзине пусто", status=status.HTTP_400_BAD_REQUEST
-            )
-
-        text = "Список покупок:\n\n"
-        ingredient_name = "recipe__recipe__ingredient__name"
-        ingredient_unit = "recipe__recipe__ingredient__measurement_unit"
-        recipe_amount = "recipe__recipe__amount"
-        amount_sum = "recipe__recipe__amount__sum"
-        cart = (
-            user.shopping_cart.select_related("recipe")
-            .values(ingredient_name, ingredient_unit)
-            .annotate(Sum(recipe_amount))
-            .order_by(ingredient_name)
-        )
-        for _ in cart:
-            text += (
-                f"{_[ingredient_name]} ({_[ingredient_unit]})"
-                f" — {_[amount_sum]}\n"
-            )
-        response = HttpResponse(text, content_type="text/plain")
-        filename = "shopping_list.txt"
-        response["Content-Disposition"] = f"attachment; filename={filename}"
-        return response
-
-
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
@@ -119,7 +71,8 @@ class SubscribeViewSet(ListCreateDeleteViewSet):
     serializer_class = SubscribeSerializer
 
     def get_queryset(self):
-        return self.request.user.follower.all()
+        user_id = self.kwargs.get("user_id")
+        return self.queryset.filter(user=self.request.user, author_id=user_id)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -127,14 +80,14 @@ class SubscribeViewSet(ListCreateDeleteViewSet):
         return context
 
     def perform_create(self, serializer):
+        user_id = self.kwargs.get("user_id")
         serializer.save(
-            user=self.request.user,
-            author=get_object_or_404(User, id=self.kwargs.get("user_id")),
+            user=self.request.user, author=get_object_or_404(User, id=user_id)
         )
 
     @action(methods=("delete",), detail=True)
     def delete(self, request, user_id):
-        get_object_or_404(User, id=user_id)
+        author = get_object_or_404(User, id=user_id)
         if not Subscribe.objects.filter(
             user=request.user, author_id=user_id
         ).exists():
@@ -142,9 +95,10 @@ class SubscribeViewSet(ListCreateDeleteViewSet):
                 {"errors": "Вы не были подписаны на автора"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        get_object_or_404(
+        subscription = get_object_or_404(
             Subscribe, user=request.user, author_id=user_id
-        ).delete()
+        )
+        subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -160,27 +114,25 @@ class FavoriteRecipeViewSet(ListCreateDeleteViewSet):
         return context
 
     def perform_create(self, serializer):
+        recipe_id = self.kwargs.get("recipe_id")
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+
         serializer.save(
             user=self.request.user,
-            favorite_recipe=get_object_or_404(
-                Recipe, id=self.kwargs.get("recipe_id")
-            ),
+            favorite_recipe=recipe,
         )
 
     @action(methods=("delete",), detail=True)
     def delete(self, request, recipe_id):
-        if (
-            not request.user.favorite.select_related("favorite_recipe")
-            .filter(favorite_recipe_id=recipe_id)
-            .exists()
-        ):
+        try:
+            favorite = request.user.favorite.get(favorite_recipe_id=recipe_id)
+        except RecipeFavorite.DoesNotExist:
             return Response(
                 {"errors": "Рецепт не в избранном"},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_404_NOT_FOUND,
             )
-        get_object_or_404(
-            RecipeFavorite, user=request.user, favorite_recipe_id=recipe_id
-        ).delete()
+
+        favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -203,16 +155,58 @@ class ShoppingCartViewSet(ListCreateDeleteViewSet):
 
     @action(methods=("delete",), detail=True)
     def delete(self, request, recipe_id):
-        if (
-            not request.user.shopping_cart.select_related("recipe")
-            .filter(recipe_id=recipe_id)
-            .exists()
-        ):
-            return Response(
-                {"errors": "Рецепта нет в корзине"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        get_object_or_404(
-            ShoppingCart, user=request.user, recipe=recipe_id
-        ).delete()
+        queryset = request.user.shopping_cart.select_related("recipe")
+        shopping_cart = get_object_or_404(queryset, recipe_id=recipe_id)
+        shopping_cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
+    permission_classes = IsAdmin
+    filterset_class = RecipeFilter
+
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return RecipeSerializer
+        return RecipeCreateSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="download_shopping_cart",
+        pagination_class=None,
+    )
+    def download_file(self, request):
+        user = request.user
+        if not user.shopping_cart.exists():
+            return Response(
+                "В корзине пусто", status=status.HTTP_400_BAD_REQUEST
+            )
+
+        ingredient_name = "recipe__recipe__ingredient__name"
+        ingredient_unit = "recipe__recipe__ingredient__measurement_unit"
+        recipe_amount = "recipe__recipe__amount"
+        amount_sum = "recipe__recipe__amount__sum"
+        cart = (
+            user.shopping_cart.select_related("recipe")
+            .values(ingredient_name, ingredient_unit)
+            .annotate(Sum(recipe_amount))
+            .order_by(ingredient_name)
+        )
+        if not cart:
+            return Response("Корзина пуста", status=status.HTTP_404_NOT_FOUND)
+
+        text = "Список покупок:\n\n"
+        for item in cart:
+            text += (
+                f"{item[ingredient_name]} ({item[ingredient_unit]})"
+                f" — {item[amount_sum]}\n"
+            )
+        response = HttpResponse(text, content_type="text/plain")
+        filename = "shopping_list.txt"
+        response["Content-Disposition"] = f"attachment; filename={filename}"
+        return response
