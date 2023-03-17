@@ -4,7 +4,6 @@ from django.contrib.auth.admin import UserAdmin
 from users.models import User
 
 
-@admin.register(User)
 class UserAdmin(UserAdmin):
     list_display = (
         "pk",
@@ -26,3 +25,6 @@ class UserAdmin(UserAdmin):
         "last_name",
     )
     empty_value_display = "-пусто-"
+
+
+admin.site.register(User, UserAdmin)

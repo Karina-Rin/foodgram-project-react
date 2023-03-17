@@ -1,5 +1,4 @@
 from django.urls import include, path
-from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 
 from api.views import SubscribeViewSet, UserViewSet
@@ -14,6 +13,6 @@ router.register(
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("auth/", include("djoser.urls.authtoken", namespace="djoser")),
-    path("404/", TemplateView.as_view(template_name="404.html"), name="404"),
+    path("auth/", include("djoser.urls.authtoken")),
+    path("", include("djoser.urls")),
 ]

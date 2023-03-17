@@ -1,11 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import (SAFE_METHODS, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
@@ -92,13 +93,47 @@ class SubscribeViewSet(ListCreateDeleteViewSet):
         ).exists():
             return Response(
                 {"errors": "Вы не были подписаны на автора"},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_404_NOT_FOUND,
             )
+
         subscription = get_object_or_404(
             Subscribe, user=request.user, author_id=user_id
         )
         subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(
+            user=self.request.user,
+            author=get_object_or_404(User, id=self.kwargs.get("user_id")),
+        )
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        auto_subscription = Subscribe.objects.filter(
+            user=request.user, author_id=self.kwargs.get("user_id")
+        ).exists()
 
 
 class FavoriteRecipeViewSet(ListCreateDeleteViewSet):
@@ -115,23 +150,27 @@ class FavoriteRecipeViewSet(ListCreateDeleteViewSet):
     def perform_create(self, serializer):
         recipe_id = self.kwargs.get("recipe_id")
         recipe = get_object_or_404(Recipe, id=recipe_id)
-
         serializer.save(
             user=self.request.user,
             favorite_recipe=recipe,
         )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(methods=("delete",), detail=True)
     def delete(self, request, recipe_id):
         try:
             favorite = request.user.favorite.get(favorite_recipe_id=recipe_id)
+            favorite.delete()
         except RecipeFavorite.DoesNotExist:
             return Response(
-                {"errors": "Рецепт не в избранном"},
+                {"errors": "Рецепта нет в избранном"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-
-        favorite.delete()
+        except Exception as e:
+            return Response(
+                {"errors": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -147,10 +186,18 @@ class ShoppingCartViewSet(ListCreateDeleteViewSet):
         return context
 
     def perform_create(self, serializer):
-        serializer.save(
-            user=self.request.user,
-            recipe=get_object_or_404(Recipe, id=self.kwargs.get("recipe_id")),
-        )
+        recipe = get_object_or_404(Recipe, id=self.kwargs.get("recipe_id"))
+        if recipe.author != self.request.user:
+            return Response(
+                {
+                    "error": "Вы не можете добавить в корзину рецепт, "
+                    "который не принадлежит вам"
+                },
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        serializer.save(user=self.request.user, recipe=recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(methods=("delete",), detail=True)
     def delete(self, request, recipe_id):
@@ -158,6 +205,22 @@ class ShoppingCartViewSet(ListCreateDeleteViewSet):
         shopping_cart = get_object_or_404(queryset, recipe_id=recipe_id)
         shopping_cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def handle_exception(self, exc):
+        if isinstance(exc, Http404):
+            return Response(
+                {"error": "Страница не найдена"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        elif isinstance(exc, PermissionDenied):
+            return Response(
+                {"error": "Отказано в разрешении"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        else:
+            return Response(
+                {"error": "Плохой запрос"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
