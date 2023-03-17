@@ -1,6 +1,6 @@
 from rest_framework.validators import ValidationError as RFError
 
-from recipes.models import Ingredient, Tag
+from recipes.models import Ingredient
 
 
 def validate_time(value):
