@@ -131,7 +131,7 @@ class SubscribeViewSet(ListCreateDeleteViewSet):
             instance, data=request.data, partial=partial
         )
         serializer.is_valid(raise_exception=True)
-        auto_subscription = Subscribe.objects.filter(
+        Subscribe.objects.filter(
             user=request.user, author_id=self.kwargs.get("user_id")
         ).exists()
 
@@ -207,20 +207,20 @@ class ShoppingCartViewSet(ListCreateDeleteViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def handle_exception(self, exc):
+        status_code = None
+        error_msg = None
+
         if isinstance(exc, Http404):
-            return Response(
-                {"error": "Страница не найдена"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            error_msg = "Страница не найдена"
+            status_code = status.HTTP_404_NOT_FOUND
         elif isinstance(exc, PermissionDenied):
-            return Response(
-                {"error": "Отказано в разрешении"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
+            error_msg = "Отказано в разрешении"
+            status_code = status.HTTP_401_UNAUTHORIZED
         else:
-            return Response(
-                {"error": "Плохой запрос"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            error_msg = "Плохой запрос"
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response({"error": error_msg}, status=status_code)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
