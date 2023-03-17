@@ -91,14 +91,14 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         verbose_name="Изображение",
-        help_text="Выберите изображение рецепта",
+        help_text="Добавьте изображение рецепта",
         upload_to="recipes/images",
         null=True,
         blank=True,
     )
     text = models.TextField(
         verbose_name="Описание рецепта",
-        help_text="Введите описания рецепта",
+        help_text="Введите описание рецепта",
         default="",
     )
     ingredients = models.ManyToManyField(
@@ -120,7 +120,7 @@ class Recipe(models.Model):
     )
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации рецепта",
-        help_text="Добавить дату создания",
+        help_text="Добавьте дату создания",
         auto_now_add=True,
     )
 
@@ -209,7 +209,7 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         related_name="shopping_cart",
-        verbose_name="Автор списка покукок",
+        verbose_name="Автор списка покупок",
         help_text="Выберите автора",
         on_delete=models.CASCADE,
     )
@@ -236,7 +236,7 @@ class ShoppingCart(models.Model):
             )
         ]
         verbose_name = "Список покупок"
-        verbose_name_plural = "Список покупок"
+        verbose_name_plural = "Списки покупок"
 
     def __str__(self):
         return (

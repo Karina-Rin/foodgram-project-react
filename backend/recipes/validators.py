@@ -12,7 +12,7 @@ def validate_ingredients(data):
     if not data:
         raise RFError({"ingredients": ["Обязательное поле."]})
     if len(data) < 1:
-        raise RFError({"ingredients": ["Не переданы ингредиенты."]})
+        raise RFError({"ingredients": ["Ингредиенты не переданы."]})
     unique_ingredients = set()
     for ingredient in data:
         id = ingredient.get("id")
@@ -24,7 +24,7 @@ def validate_ingredients(data):
             )
         unique_ingredients.add(id)
         if not Ingredient.objects.filter(id=id).exists():
-            raise RFError({"ingredients": ["Ингредиента нет в Базе."]})
+            raise RFError({"ingredients": ["Ингредиента нет в базе."]})
         amount = ingredient.get("amount")
         if amount < 1:
             raise RFError({"amount": ["Количество не может быть менее 1."]})

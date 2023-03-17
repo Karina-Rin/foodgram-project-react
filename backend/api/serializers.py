@@ -142,7 +142,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             "tags": {
                 "error_messages": {
                     "does_not_exist": (
-                        "Ошибка в Тэге, id = {pk_value} " "не существует"
+                        "Ошибка в Теге, id = {pk_value} " "не существует"
                     )
                 }
             }
@@ -181,23 +181,23 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             )
         if not tags:
             raise serializers.ValidationError(
-                {"tags": "Необходимо выбрать хотя бы один тэг!"}
+                {"tags": "Необходимо выбрать хотя бы один тег!"}
             )
         tags_list = []
         for tag in tags:
             if tag in tags_list:
                 raise serializers.ValidationError(
-                    {"tags": "Тэги должны быть уникальными!"}
+                    {"tags": "Теги должны быть уникальными!"}
                 )
             tags_list.append(tag)
             if len(tags_list) > len(set(tags_list)):
                 raise serializers.ValidationError(
-                    "Тэги не должны повторяться."
+                    "Теги не должны повторяться."
                 )
         cooking_time = data["cooking_time"]
         if int(cooking_time) <= 0:
             raise serializers.ValidationError(
-                {"cooking_time": "Время приготовления должно быть больше 0!"}
+                {"cooking_time": "Время приготовления должно быть >=1!"}
             )
 
         return data
