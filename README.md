@@ -94,12 +94,6 @@ http://62.84.120.208/admin/
 Login: adminrin
 Password: 1297aRR14
 ```
-Тестовый пользователь
-```
-login: testuser
-Password: 1911test
-Email:aa@im.ru
-```
 
 ### Адрес проекта
 http://62.84.120.208/
