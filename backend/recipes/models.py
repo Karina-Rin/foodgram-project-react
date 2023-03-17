@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import UniqueConstraint
+
+from recipes.validators import validate_ingredients, validate_time
 
 max_legth = settings.MAX_LEGTH
 
@@ -114,7 +116,7 @@ class Recipe(models.Model):
     cooking_time = models.DurationField(
         verbose_name="Время приготовления",
         help_text="Введите время приготовления",
-        validators=(MinValueValidator(1, "Значение не может быть 0"),),
+        validators=models.IntegerField(validators=[validate_time]),
     )
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации рецепта",
@@ -149,7 +151,7 @@ class IngredientAmount(models.Model):
     amount = models.PositiveIntegerField(
         verbose_name="Количество",
         help_text="Введите количество ингредиентов",
-        validators=[MinValueValidator(1, "Не может быть менее 1")],
+        validators=models.IntegerField(validators=[validate_ingredients]),
         null=False,
         blank=False,
     )
