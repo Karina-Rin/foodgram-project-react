@@ -71,7 +71,7 @@ class Ingredient(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.name} ({self.measurement_unit})"
+        return self.name
 
 
 class Recipe(models.Model):
@@ -128,7 +128,7 @@ class Recipe(models.Model):
         ordering = ("-pub_date",)
 
     def __str__(self):
-        return f"Автор: {self.author.username} рецепт: {self.name}"
+        return self.name
 
 
 class IngredientAmount(models.Model):
@@ -144,12 +144,12 @@ class IngredientAmount(models.Model):
         related_name="ingredient",
         verbose_name="Ингредиент",
         help_text="Добавить ингредиенты рецепта в корзину",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
     )
     amount = models.PositiveIntegerField(
         verbose_name="Количество",
         help_text="Введите количество ингредиентов",
-        default=1,
+        validators=[MinValueValidator(1, "Не может быть менее 1")],
         null=False,
         blank=False,
     )

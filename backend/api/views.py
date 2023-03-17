@@ -70,6 +70,7 @@ class UserViewSet(UserViewSet):
 
 class SubscribeViewSet(ListCreateDeleteViewSet):
     serializer_class = SubscribeSerializer
+    queryset = Subscribe.objects.all()
 
     def get_queryset(self):
         user_id = self.kwargs.get("user_id")

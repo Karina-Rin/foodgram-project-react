@@ -1,8 +1,7 @@
-from django.conf import settings
 from django.contrib import admin
 
 from recipes.models import (Ingredient, IngredientAmount, Recipe,
-                            RecipeFavorite, ShoppingCart, Tag)
+                            RecipeFavorite, ShoppingCart, Subscribe, Tag)
 
 
 class IngredientRecipeInline(admin.TabularInline):
@@ -11,50 +10,55 @@ class IngredientRecipeInline(admin.TabularInline):
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ("pk", "id", "name", "color", "slug")
-    search_fields = ("name", "slug")
-    list_filter = ("name", "slug")
-    empty_value_display = settings.EMPTY_VALUE_DISPLAY
+    list_display = ("pk", "name", "color", "slug")
+    search_fields = ("name", "color", "slug")
+    list_filter = ("name",)
+    empty_value_display = "-пусто-"
 
 
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ("pk", "id", "name", "measurement_unit")
+    list_display = ("pk", "name", "measurement_unit")
     search_fields = ("name", "measurement_unit")
     list_filter = ("name",)
-    empty_value_display = settings.EMPTY_VALUE_DISPLAY
+    empty_value_display = "-пусто-"
+
+
+class IngredientAmountInline(admin.TabularInline):
+    model = IngredientAmount
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "author", "count_favorites")
+    list_display = ("name", "author", "count_favorites", "image")
     search_fields = ("username", "email", "first_name", "last_name")
     list_filter = ("author", "name", "tags")
-    empty_value_display = settings.EMPTY_VALUE_DISPLAY
+    empty_value_display = "-пусто-"
+    exclude = ("ingredients",)
+    inlines = (IngredientAmountInline,)
 
     def count_favorites(self, obj):
         return obj.favorites.count()
 
 
 class IngredientAmountAdmin(admin.ModelAdmin):
-    list_display = ("pk", "id", "recipe", "ingredient", "amount")
+    list_display = ("id", "recipe", "ingredient", "amount")
     search_fields = ("recipe", "ingredient")
-    list_filter = ("recipe", "ingredient")
-    empty_value_display = settings.EMPTY_VALUE_DISPLAY
-    list_select_related = ["recipe", "ingredient"]
-    raw_id_fields = ["recipe", "ingredient"]
 
 
 class RecipeFavoriteAdmin(admin.ModelAdmin):
-    list_display = ("pk", "id", "user", "recipe")
+    list_display = ("id", "user", "recipe")
     search_fields = ("user", "recipe")
-    list_filter = ("user", "recipe")
-    empty_value_display = settings.EMPTY_VALUE_DISPLAY
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ("pk", "id", "user", "recipe")
+    list_display = ("id", "user", "recipe")
     search_fields = ("user", "recipe")
     list_filter = ("user", "recipe")
-    empty_value_display = settings.EMPTY_VALUE_DISPLAY
+    empty_value_display = "-пусто-"
+
+
+class SubscribeAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "author")
+    search_fields = ("user__username", "author__username")
 
 
 admin.site.register(Tag, TagAdmin)
@@ -63,3 +67,4 @@ admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(IngredientAmount, IngredientAmountAdmin)
 admin.site.register(RecipeFavorite, RecipeFavoriteAdmin)
 admin.site.register(ShoppingCart, ShoppingCartAdmin)
+admin.site.register(Subscribe, SubscribeAdmin)
