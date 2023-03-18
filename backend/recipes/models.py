@@ -181,7 +181,6 @@ class RecipeFavorite(models.Model):
         help_text="Выберите рецепт",
         on_delete=models.CASCADE,
     )
-    is_favorite = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
