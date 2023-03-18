@@ -1,10 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import UniqueConstraint
-
-from recipes.validators import validate_ingredients, validate_time
 
 max_legth = settings.MAX_LEGTH
 
@@ -73,7 +71,7 @@ class Ingredient(models.Model):
         ]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.measurement_unit})"
 
 
 class Recipe(models.Model):
@@ -91,14 +89,14 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         verbose_name="Изображение",
-        help_text="Добавьте изображение рецепта",
+        help_text="Выберите изображение рецепта",
         upload_to="recipes/images",
         null=True,
         blank=True,
     )
     text = models.TextField(
         verbose_name="Описание рецепта",
-        help_text="Введите описание рецепта",
+        help_text="Введите описания рецепта",
         default="",
     )
     ingredients = models.ManyToManyField(
@@ -116,11 +114,11 @@ class Recipe(models.Model):
     cooking_time = models.DurationField(
         verbose_name="Время приготовления",
         help_text="Введите время приготовления",
-        validators=models.IntegerField(validators=[validate_time]),
+        validators=(MinValueValidator(1, "Значение не может быть 0"),),
     )
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации рецепта",
-        help_text="Добавьте дату создания",
+        help_text="Добавить дату создания",
         auto_now_add=True,
     )
 
@@ -130,7 +128,7 @@ class Recipe(models.Model):
         ordering = ("-pub_date",)
 
     def __str__(self):
-        return self.name
+        return f"Автор: {self.author.username} рецепт: {self.name}"
 
 
 class IngredientAmount(models.Model):
@@ -146,12 +144,12 @@ class IngredientAmount(models.Model):
         related_name="ingredient",
         verbose_name="Ингредиент",
         help_text="Добавить ингредиенты рецепта в корзину",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
     )
     amount = models.PositiveIntegerField(
         verbose_name="Количество",
         help_text="Введите количество ингредиентов",
-        validators=models.IntegerField(validators=[validate_ingredients]),
+        default=1,
         null=False,
         blank=False,
     )
@@ -209,7 +207,7 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         related_name="shopping_cart",
-        verbose_name="Автор списка покупок",
+        verbose_name="Автор списка покукок",
         help_text="Выберите автора",
         on_delete=models.CASCADE,
     )
@@ -236,7 +234,7 @@ class ShoppingCart(models.Model):
             )
         ]
         verbose_name = "Список покупок"
-        verbose_name_plural = "Списки покупок"
+        verbose_name_plural = "Список покупок"
 
     def __str__(self):
         return (
