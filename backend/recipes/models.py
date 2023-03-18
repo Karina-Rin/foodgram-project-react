@@ -213,12 +213,6 @@ class ShoppingCart(models.Model):
         help_text="Выберите рецепты для добавления продуктов в корзину",
         on_delete=models.CASCADE,
     )
-    date_added = models.DateTimeField(
-        verbose_name="Дата добавления",
-        help_text="Дата и время добавления товара в корзину.",
-        auto_now_add=True,
-        editable=False,
-    )
 
     class Meta:
         ordering = ("id",)
