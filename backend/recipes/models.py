@@ -116,19 +116,14 @@ class Recipe(models.Model):
         help_text="Введите время приготовления",
         validators=(MinValueValidator(1, "Значение не может быть 0"),),
     )
-    pub_date = models.DateTimeField(
-        verbose_name="Дата публикации рецепта",
-        help_text="Добавить дату создания",
-        auto_now_add=True,
-    )
 
     class Meta:
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
-        ordering = ("-pub_date",)
+        ordering = ("-id",)
 
     def __str__(self):
-        return f"Автор: {self.author.username} рецепт: {self.name}"
+        return self.name
 
 
 class IngredientAmount(models.Model):
