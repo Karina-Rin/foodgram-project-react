@@ -11,15 +11,15 @@ User = get_user_model()
 
 class Tag(models.Model):
     name = models.CharField(
-        verbose_name="Название",
-        help_text="Введите название тега",
+        verbose_name="Тэг",
+        help_text="Введите название тэга",
         max_length=max_legth,
         db_index=True,
         unique=True,
     )
     color = models.CharField(
         verbose_name="HEX-код",
-        help_text="Введите цвет тега",
+        help_text="Введите HEX-код цвета тэга",
         max_length=7,
         default="#FF0000",
         null=True,
@@ -32,19 +32,19 @@ class Tag(models.Model):
         ],
     )
     slug = models.SlugField(
-        verbose_name="Slug тега",
-        help_text="Введите текстовый идентификатор тега",
+        verbose_name="Slug тэга",
+        help_text="Введите текстовый идентификатор тэга",
         max_length=max_legth,
         unique=True,
     )
 
     class Meta:
-        verbose_name = "Тег"
-        verbose_name_plural = "Теги"
+        verbose_name = "Тэг"
+        verbose_name_plural = "Тэги"
         ordering = ("name",)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} (цвет: {self.color})"
 
 
 class Ingredient(models.Model):
@@ -96,7 +96,7 @@ class Recipe(models.Model):
     )
     text = models.TextField(
         verbose_name="Описание рецепта",
-        help_text="Введите описания рецепта",
+        help_text="Введите описание рецепта",
         default="",
     )
     ingredients = models.ManyToManyField(
@@ -107,11 +107,11 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag,
-        verbose_name="Тег",
+        verbose_name="Тэг",
         related_name="recipes",
-        help_text="Выберите тег рецепта",
+        help_text="Выберите тэг рецепта.",
     )
-    cooking_time = models.DurationField(
+    cooking_time = models.PositiveIntegerField(
         verbose_name="Время приготовления",
         help_text="Введите время приготовления",
         validators=(MinValueValidator(1, "Значение не может быть 0"),),
@@ -150,7 +150,7 @@ class IngredientAmount(models.Model):
     )
 
     class Meta:
-        ordering = ("id",)
+        ordering = ("recipe",)
         verbose_name = "Количество ингредиента"
         verbose_name_plural = "Количество ингредиентов"
         constraints = [
