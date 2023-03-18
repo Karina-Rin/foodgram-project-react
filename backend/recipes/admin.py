@@ -20,7 +20,7 @@ class TagAdmin(admin.ModelAdmin):
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "measurement_unit")
     search_fields = ("name",)
-    list_filter = ("name", "slug")
+    list_filter = ("name",)
     empty_value_display = "-пусто-"
 
 
@@ -69,9 +69,13 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 
 
 class SubscribeAdmin(admin.ModelAdmin):
-    list_display = ("id", "author", "user", "created")
-    search_fields = ("author", "created")
-    list_filter = ("author", "user", "created")
+    list_display = (
+        "id",
+        "author",
+        "user",
+    )
+    search_fields = ("author",)
+    list_filter = ("author", "user")
     empy_value_display = "-пусто-"
 
 
