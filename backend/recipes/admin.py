@@ -47,14 +47,14 @@ class RecipeAdmin(admin.ModelAdmin):
     count_favorites.short_description = "В избранном"
 
 
-class IngredientAmountAdmin(admin.ModelAdmin):
-    list_display = ("id", "recipe", "ingredient", "amount")
-    search_fields = ("recipe", "ingredient")
-
-
 class RecipeFavoriteAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "recipe")
     search_fields = ("user", "recipe")
+
+
+class IngredientAmountAdmin(admin.ModelAdmin):
+    list_display = ("id", "recipe", "ingredient", "amount")
+    search_fields = ("recipe", "ingredient")
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
