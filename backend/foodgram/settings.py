@@ -110,16 +110,11 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
-    "PAGE_SIZE": 10,
-    "DEFAULT_FILTER_BACKENDS": [
-        "django_filters.rest_framework.DjangoFilterBackend"
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
 }
 
@@ -127,9 +122,9 @@ DJOSER = {
     "LOGIN_FIELD": "email",
     "HIDE_USERS": False,
     "SERIALIZERS": {
-        "user_create": "api.serializers.RegistrationUserSerializer",
+        "user_read": "api.serializers.UserReadSerializer",
+        "user_create": "api.serializers.UserCreateSerializer",
         "user": "api.serializers.RegistrationUserSerializer",
-        "current_user": "api.serializers.RegistrationUserSerializer",
     },
     "PERMISSIONS": {
         "user": ["rest_framework.permissions.IsAuthenticated"],
@@ -138,7 +133,7 @@ DJOSER = {
 }
 
 MAX_LEGTH = 100
-MAX_EMAIL_LENGTH = 254
+MAX_EMAIL_LENGTH = 255
 MAX_USERNAME_LENGTH = 150
 MAX_PASSWORD_LENGTH = 150
 
