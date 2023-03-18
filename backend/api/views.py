@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import UserCreateSerializer
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
@@ -13,12 +14,14 @@ from rest_framework.response import Response
 
 from api.filters import IngredientSearchFilter, RecipeFilter
 from api.mixins import ListCreateDeleteViewSet
+from api.pagination import Pagination
 from api.permissions import IsAdmin
 from api.serializers import (FavoriteRecipeSerializer, IngredientSerializer,
                              RecipeCreateSerializer, RecipeSerializer,
                              SetPasswordSerializer, ShoppingCartSerializer,
                              SubscribeSerializer, TagSerializer,
                              UserCreateSerializer, UserReadSerializer)
+from api.utils import delete_for_actions, post_for_actions
 from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
                             Subscribe, Tag)
 
@@ -226,50 +229,59 @@ class ShoppingCartViewSet(ListCreateDeleteViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    permission_classes = IsAdmin
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    pagination_class = Pagination
 
-    def get_serializer_class(self):
-        if self.request.method in SAFE_METHODS:
-            return RecipeSerializer
-        return RecipeCreateSerializer
+    def get_queryset(self):
+        is_favorited = self.request.query_params.get("is_favorited")
+        if is_favorited is not None and int(is_favorited) == 1:
+            return Recipe.objects.filter(favorites__user=self.request.user)
+        is_in_shopping_cart = self.request.query_params.get(
+            "is_in_shopping_cart"
+        )
+        if is_in_shopping_cart is not None and int(is_in_shopping_cart) == 1:
+            return Recipe.objects.filter(cart__user=self.request.user)
+        return Recipe.objects.all()
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(
+            "Рецепт успешно удален", status=status.HTTP_204_NO_CONTENT
+        )
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return RecipeCreateSerializer
+        return RecipeSerializer
+
+    def get_permissions(self):
+        if self.action != "create":
+            return (IsAdmin(),)
+        return super().get_permissions()
+
     @action(
-        detail=False,
-        methods=["get"],
-        url_path="download_shopping_cart",
-        pagination_class=None,
+        detail=True,
+        methods=["POST", "DELETE"],
     )
-    def download_file(self, request):
-        user = request.user
-        if not user.shopping_cart.exists():
-            return Response(
-                "В корзине пусто", status=status.HTTP_400_BAD_REQUEST
+    def favorite(self, request, pk):
+        if self.request.method == "POST":
+            return post_for_actions(
+                request, pk, RecipeFavorite, SubscribeSerializer
             )
+        return delete_for_actions(request, pk, RecipeFavorite)
 
-        ingredient_name = "recipe__recipe__ingredient__name"
-        ingredient_unit = "recipe__recipe__ingredient__measurement_unit"
-        recipe_amount = "recipe__recipe__amount"
-        amount_sum = "recipe__recipe__amount__sum"
-        cart = (
-            user.shopping_cart.select_related("recipe")
-            .values(ingredient_name, ingredient_unit)
-            .annotate(Sum(recipe_amount))
-            .order_by(ingredient_name)
-        )
-        if not cart:
-            return Response("Корзина пуста", status=status.HTTP_404_NOT_FOUND)
-
-        text = "Список покупок:\n\n"
-        for item in cart:
-            text += (
-                f"{item[ingredient_name]} ({item[ingredient_unit]})"
-                f" — {item[amount_sum]}\n"
+    @action(
+        detail=True,
+        methods=["POST", "DELETE"],
+    )
+    def shopping_cart(self, request, pk):
+        if request.method == "POST":
+            return post_for_actions(
+                request, pk, ShoppingCart, SubscribeSerializer
             )
-        response = HttpResponse(text, content_type="text/plain")
-        filename = "shopping_list.txt"
-        response["Content-Disposition"] = f"attachment; filename={filename}"
-        return response
+        return delete_for_actions(request, pk, ShoppingCart)
