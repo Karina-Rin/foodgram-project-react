@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "ns6(14uyb7kn3q10kkz+=y8#k!g$$+qhs)ho+6^nzy=9xoru3g"
 # SECRET_KEY = os.getenv("SECRET_KEY")
 
-DEBUG = True
+DEBUG = False
 
 # ALLOWED_HOSTS = [os.getenv("ALLOWED_HOSTS", "*"), "*"]
 ALLOWED_HOSTS = [

@@ -11,15 +11,15 @@ User = get_user_model()
 
 class Tag(models.Model):
     name = models.CharField(
-        verbose_name="Тэг",
-        help_text="Введите название тэга",
+        verbose_name="Тег",
+        help_text="Введите название тега",
         max_length=max_legth,
         db_index=True,
         unique=True,
     )
     color = models.CharField(
         verbose_name="HEX-код",
-        help_text="Введите HEX-код цвета тэга",
+        help_text="Введите HEX-код цвета тега",
         max_length=7,
         default="#FF0000",
         null=True,
@@ -33,14 +33,14 @@ class Tag(models.Model):
     )
     slug = models.SlugField(
         verbose_name="Slug тэга",
-        help_text="Введите текстовый идентификатор тэга",
+        help_text="Введите текстовый идентификатор тега",
         max_length=max_legth,
         unique=True,
     )
 
     class Meta:
-        verbose_name = "Тэг"
-        verbose_name_plural = "Тэги"
+        verbose_name = "Тег"
+        verbose_name_plural = "Теги"
         ordering = ("name",)
 
     def __str__(self):
@@ -107,7 +107,7 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag,
-        verbose_name="Тэг",
+        verbose_name="Тег",
         related_name="recipes",
         help_text="Выберите тэг рецепта.",
     )
