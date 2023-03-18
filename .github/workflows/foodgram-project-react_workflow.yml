@@ -57,7 +57,7 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
-        passphrase: ${{ secrets.PASSPHRASE }}
+        #passphrase: ${{ secrets.PASSPHRASE }}
         script: |
           sudo docker pull karinarin/foodgram_frontend:v.1.0.0
           sudo docker-compose stop
