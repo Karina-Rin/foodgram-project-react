@@ -94,7 +94,6 @@ http://62.84.120.208/admin/
 Login: adminrin
 Password: 1297aRR14
 ```
-
 ### Адрес проекта
 http://62.84.120.208/
 
