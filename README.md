@@ -90,15 +90,15 @@ python manage.py createsuperuser
 ### Тестовые данные для проверки ревьюером:
 Админ
 ```
-http://62.84.120.208/admin/
+http://51.250.111.200/admin/
 Login: adminrin
 Password: 1297aRR14
 ```
 ### Адрес проекта
-http://62.84.120.208/
+http://51.250.111.200/
 
 ### Документация
-http://62.84.120.208/api/docs/
+http://51.250.111.200/api/docs/
 
 ## Авторы
 Karina-Rin
