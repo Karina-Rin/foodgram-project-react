@@ -226,11 +226,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = ("id", "name", "measurement_unit")
-        extra_kwargs = {
-            "name": {"required": False},
-            "measurement_unit": {"required": False},
-        }
+        fields = "__all__"
 
 
 class SetPasswordSerializer(PasswordSerializer):

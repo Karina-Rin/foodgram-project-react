@@ -104,6 +104,7 @@ class Recipe(models.Model):
         related_name="recipes",
         verbose_name="Ингредиенты для приготовления блюда по рецепту",
         help_text="Выберите ингредиенты рецепта",
+        through='IngredientAmount',
     )
     tags = models.ManyToManyField(
         Tag,
@@ -150,7 +151,7 @@ class IngredientAmount(models.Model):
     )
 
     class Meta:
-        ordering = ("recipe",)
+        ordering = ("id",)
         verbose_name = "Количество ингредиента"
         verbose_name_plural = "Количество ингредиентов"
         constraints = [
@@ -174,9 +175,9 @@ class RecipeFavorite(models.Model):
         help_text="Выберите автора",
         on_delete=models.CASCADE,
     )
-    recipe = models.ForeignKey(
+    favorite_recipe = models.ForeignKey(
         Recipe,
-        related_name="in_favorites",
+        related_name="favorite_recipe",
         verbose_name="Избранный рецепт",
         help_text="Выберите рецепт",
         on_delete=models.CASCADE,
@@ -185,7 +186,7 @@ class RecipeFavorite(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=("user", "recipe"), name="unique favourite"
+                fields=("user", "favorite_recipe"), name="unique favourite"
             )
         ]
         verbose_name = "Избранное"
@@ -193,7 +194,7 @@ class RecipeFavorite(models.Model):
         ordering = ("id",)
 
     def __str__(self) -> str:
-        return f"{self.user} -> {self.recipe}"
+        return f"{self.user} -> {self.favorite_recipe}"
 
 
 class ShoppingCart(models.Model):

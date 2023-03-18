@@ -18,21 +18,23 @@ class TagAdmin(admin.ModelAdmin):
 
 
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ("pk", "name", "measurement_unit")
-    search_fields = ("name", "measurement_unit")
-    list_filter = ("name",)
+    list_display = ("id", "name", "measurement_unit")
+    search_fields = ("name",)
+    list_filter = ("name", "slug")
     empty_value_display = "-пусто-"
 
 
 class IngredientAmountInline(admin.TabularInline):
     model = IngredientAmount
+    autocomplete_fields = ("ingredient",)
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ("name", "author", "count_favorites", "image")
-    search_fields = ("username", "email", "first_name", "last_name")
+    list_display = ("id", "name", "author", "count_favorites", "image")
+    search_fields = ("name", "author", "tags")
     list_filter = ("author", "name", "tags")
     exclude = ("ingredients",)
+    filter_vertical = ("tags",)
     inlines = (IngredientAmountInline,)
     empty_value_display = "-пусто-"
 
@@ -48,8 +50,10 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 class RecipeFavoriteAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "recipe")
-    search_fields = ("user", "recipe")
+    list_display = ("id", "user", "favorite_recipe")
+    search_fields = "favorite_recipe"
+    list_filter = ("id", "user", "favorite_recipe")
+    empy_value_display = "-пусто-"
 
 
 class IngredientAmountAdmin(admin.ModelAdmin):
@@ -65,8 +69,10 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 
 
 class SubscribeAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "author")
-    search_fields = ("user__username", "author__username")
+    list_display = ("id", "author", "user", "created")
+    search_fields = ("author", "created")
+    list_filter = ("author", "user", "created")
+    empy_value_display = "-пусто-"
 
 
 admin.site.register(Tag, TagAdmin)
