@@ -69,11 +69,9 @@ class UserViewSet(UserViewSet):
 
 class SubscribeViewSet(ListCreateDeleteViewSet):
     serializer_class = SubscribeSerializer
-    queryset = Subscribe.objects.all()
 
     def get_queryset(self):
-        user_id = self.kwargs.get("user_id")
-        return self.queryset.filter(user=self.request.user, author_id=user_id)
+        return self.request.user.follower.all()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -81,59 +79,25 @@ class SubscribeViewSet(ListCreateDeleteViewSet):
         return context
 
     def perform_create(self, serializer):
-        user_id = self.kwargs.get("user_id")
         serializer.save(
-            user=self.request.user, author=get_object_or_404(User, id=user_id)
+            user=self.request.user,
+            author=get_object_or_404(User, id=self.kwargs.get("user_id")),
         )
 
     @action(methods=("delete",), detail=True)
     def delete(self, request, user_id):
+        get_object_or_404(User, id=user_id)
         if not Subscribe.objects.filter(
             user=request.user, author_id=user_id
         ).exists():
             return Response(
                 {"errors": "Вы не были подписаны на автора"},
-                status=status.HTTP_404_NOT_FOUND,
+                status=status.HTTP_400_BAD_REQUEST,
             )
-
-        subscription = get_object_or_404(
+        get_object_or_404(
             Subscribe, user=request.user, author_id=user_id
-        )
-        subscription.delete()
+        ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(
-            user=self.request.user,
-            author=get_object_or_404(User, id=self.kwargs.get("user_id")),
-        )
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop("partial", False)
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=partial
-        )
-        serializer.is_valid(raise_exception=True)
-        Subscribe.objects.filter(
-            user=request.user, author_id=self.kwargs.get("user_id")
-        ).exists()
 
 
 class FavoriteRecipeViewSet(ListCreateDeleteViewSet):
@@ -225,7 +189,7 @@ class ShoppingCartViewSet(ListCreateDeleteViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    permission_classes = IsAdmin
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdmin)
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
