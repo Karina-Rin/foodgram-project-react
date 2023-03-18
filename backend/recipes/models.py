@@ -181,6 +181,7 @@ class RecipeFavorite(models.Model):
         help_text="Выберите рецепт",
         on_delete=models.CASCADE,
     )
+    is_favorite = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
@@ -192,10 +193,8 @@ class RecipeFavorite(models.Model):
         verbose_name_plural = "Избранные"
         ordering = ("id",)
 
-    def __str__(self):
-        return (
-            f"Пользователь: {self.user.username}" f"рецепт: {self.recipe.name}"
-        )
+    def __str__(self) -> str:
+        return f"{self.user} -> {self.recipe}"
 
 
 class ShoppingCart(models.Model):

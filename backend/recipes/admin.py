@@ -1,7 +1,14 @@
 from django.contrib import admin
-
-from recipes.models import (Ingredient, IngredientAmount, Recipe,
-                            RecipeFavorite, ShoppingCart, Subscribe, Tag)
+from django.utils.safestring import SafeString, mark_safe
+from recipes.models import (
+    Ingredient,
+    IngredientAmount,
+    Recipe,
+    RecipeFavorite,
+    ShoppingCart,
+    Subscribe,
+    Tag,
+)
 
 
 class IngredientRecipeInline(admin.TabularInline):
@@ -35,8 +42,15 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = (IngredientAmountInline,)
     empty_value_display = "-пусто-"
 
-    def count_favorites(self, obj):
-        return obj.favorites.count()
+    def get_image(self, obj: Recipe) -> SafeString:
+        return mark_safe(f'<img src={obj.image.url} width="80" hieght="30"')
+
+    get_image.short_description = "Изображение"
+
+    def count_favorites(self, obj: Recipe) -> int:
+        return obj.in_favorites.count()
+
+    count_favorites.short_description = "В избранном"
 
 
 class IngredientAmountAdmin(admin.ModelAdmin):
