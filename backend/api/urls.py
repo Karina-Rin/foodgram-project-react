@@ -1,4 +1,3 @@
-from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
@@ -19,6 +18,4 @@ urlpatterns = [
     path("", include(v1_router.urls)),
     path("auth/", include("djoser.urls.authtoken")),
     path("", include("djoser.urls")),
-    path("admin/", admin.site.urls),
-    path("api/", include("api.urls")),
 ]
