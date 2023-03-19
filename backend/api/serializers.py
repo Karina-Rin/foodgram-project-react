@@ -194,13 +194,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         author = validated_data.get("author")
         tags_data = validated_data.pop("tags")
-        ingredients = validated_data.pop("ingredient_recipes")
+        ingredients = validated_data.pop("ingredient")
         Recipe.objects.create(author=author, **validated_data)
         self.uniq_ingredients_and_tags(tags_data, ingredients)
 
     def update(self, instance, validated_data):
         tags_data = validated_data.pop("tags")
-        ingredients = validated_data.pop("ingredient_recipes")
+        ingredients = validated_data.pop("ingredient")
         Subscribe.objects.filter(recipe=instance).delete()
         IngredientAmount.objects.filter(recipe=instance).delete()
         instance = self.uniq_ingredients_and_tags(
