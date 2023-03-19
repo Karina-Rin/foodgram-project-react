@@ -148,17 +148,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             }
         }
 
-    def validate_ingredients(self, value):
-        ingredients_list = []
-        ingredients = value
-        for ingredient in ingredients:
-            id_to_check = ingredient["ingredient"]["id"]
-            ingredient_to_check = Ingredient.objects.filter(id=id_to_check)
-            if not ingredient_to_check.exists():
-                raise serializers.ValidationError("Этого продукта нет в базе!")
-            ingredients_list.append(ingredient_to_check)
-        return value
-
     def uniq_ingredients_and_tags(self, data):
         ingredients = data["ingredients"]
         ingredients_list = []
