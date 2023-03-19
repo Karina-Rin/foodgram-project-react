@@ -27,21 +27,6 @@ from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
 User = get_user_model()
 
 
-class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Ingredient.objects.all()
-    serializer_class = IngredientSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = None
-    filterset_class = IngredientSearchFilter
-
-
-class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = None
-
-
 class UserViewSet(UserViewSet):
     queryset = User.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -68,6 +53,21 @@ class UserViewSet(UserViewSet):
             context={"request": request},
         )
         return self.get_paginated_response(serializer.data)
+
+
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = None
+    filterset_class = IngredientSearchFilter
+
+
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = None
 
 
 class SubscribeViewSet(ListCreateDeleteViewSet):
