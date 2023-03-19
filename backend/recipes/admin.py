@@ -7,8 +7,6 @@ from recipes.models import (Ingredient, IngredientAmount, Recipe,
 
 class IngredientRecipeInline(admin.TabularInline):
     model = IngredientAmount
-    fields = ("ingredient", "amount")
-    min_num = 1
     extra = 0
 
 
@@ -21,32 +19,21 @@ class TagAdmin(admin.ModelAdmin):
 
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ("pk", "name", "measurement_unit")
-    list_editable = (
-        "name",
-        "measurement_unit",
-    )
-    search_fields = ("name",)
+    search_fields = ("name", "measurement_unit")
+    list_filter = ("name",)
     empty_value_display = "-пусто-"
 
 
-class IngredientAmountAdmin(admin.ModelAdmin):
-    list_display = (
-        "pk",
-        "recipe",
-        "ingredient",
-        "amount",
-    )
-    list_editable = ("ingredient", "amount")
-    search_fields = ("ingredient",)
+class IngredientAmountInline(admin.TabularInline):
+    model = IngredientAmount
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ("pk", "name", "author", "count_favorites", "image")
-    search_fields = ("name", "author", "tags")
+    list_display = ("name", "author", "count_favorites", "image")
+    search_fields = ("username", "email", "first_name", "last_name")
     list_filter = ("author", "name", "tags")
     exclude = ("ingredients",)
-    filter_vertical = ("tags",)
-    inlines = (IngredientRecipeInline,)
+    inlines = (IngredientAmountInline,)
     empty_value_display = "-пусто-"
 
     def get_image(self, obj: Recipe) -> SafeString:
@@ -55,40 +42,31 @@ class RecipeAdmin(admin.ModelAdmin):
     get_image.short_description = "Изображение"
 
     def count_favorites(self, obj: Recipe) -> int:
-        return obj.recipe.count()
+        return obj.in_favorites.count()
 
     count_favorites.short_description = "В избранном"
 
 
 class RecipeFavoriteAdmin(admin.ModelAdmin):
-    list_display = ("pk", "user", "recipe")
-    list_editable = (
-        "user",
-        "recipe",
-    )
-    list_filter = ("user",)
-    empy_value_display = "-пусто-"
+    list_display = ("id", "user", "recipe")
+    search_fields = ("user", "recipe")
 
 
-class SubscribeAdmin(admin.ModelAdmin):
-    list_display = (
-        "pk",
-        "author",
-        "user",
-    )
-    list_editable = (
-        "user",
-        "author",
-    )
-    list_filter = ("user", "author")
-    empy_value_display = "-пусто-"
+class IngredientAmountAdmin(admin.ModelAdmin):
+    list_display = ("id", "recipe", "ingredient", "amount")
+    search_fields = ("recipe", "ingredient")
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ("recipe", "user")
-    list_filter = ("recipe", "user")
-    search_fields = ("user",)
+    list_display = ("id", "user", "recipe")
+    search_fields = ("user", "recipe")
+    list_filter = ("user", "recipe")
     empty_value_display = "-пусто-"
+
+
+class SubscribeAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "author")
+    search_fields = ("user__username", "author__username")
 
 
 admin.site.register(Tag, TagAdmin)
@@ -96,5 +74,5 @@ admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(IngredientAmount, IngredientAmountAdmin)
 admin.site.register(RecipeFavorite, RecipeFavoriteAdmin)
-admin.site.register(Subscribe, SubscribeAdmin)
 admin.site.register(ShoppingCart, ShoppingCartAdmin)
+admin.site.register(Subscribe, SubscribeAdmin)

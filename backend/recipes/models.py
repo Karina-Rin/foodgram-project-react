@@ -44,7 +44,7 @@ class Tag(models.Model):
         ordering = ("name",)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} (цвет: {self.color})"
 
 
 class Ingredient(models.Model):
@@ -62,7 +62,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
-        ordering = ("name",)
+        ordering = ("id",)
         constraints = [
             models.UniqueConstraint(
                 fields=["name", "measurement_unit"],
@@ -104,7 +104,6 @@ class Recipe(models.Model):
         related_name="recipes",
         verbose_name="Ингредиенты для приготовления блюда по рецепту",
         help_text="Выберите ингредиенты рецепта",
-        through="IngredientAmount",
     )
     tags = models.ManyToManyField(
         Tag,
@@ -112,40 +111,72 @@ class Recipe(models.Model):
         related_name="recipes",
         help_text="Выберите тэг рецепта.",
     )
-    cooking_time = models.IntegerField(
+    cooking_time = models.PositiveIntegerField(
         verbose_name="Время приготовления",
         help_text="Введите время приготовления",
-        validators=(MinValueValidator(1, "Значение не может <= 0"),),
-    )
-    created = models.DateTimeField(
-        auto_now_add=True, verbose_name="Дата создания"
+        validators=(MinValueValidator(1, "Значение не может быть 0"),),
     )
 
     class Meta:
-        ordering = ["-created"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["author", "name"], name="unique_author_name"
-            )
-        ]
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
+        ordering = ("-id",)
 
     def __str__(self):
         return self.name
 
 
+class IngredientAmount(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name="recipe",
+        verbose_name="Рецепт",
+        help_text="Выберите рецепт",
+        on_delete=models.CASCADE,
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        related_name="ingredient",
+        verbose_name="Ингредиент",
+        help_text="Добавить ингредиенты рецепта в корзину",
+        on_delete=models.CASCADE,
+    )
+    amount = models.PositiveIntegerField(
+        verbose_name="Количество",
+        help_text="Введите количество ингредиентов",
+        default=1,
+        null=False,
+        blank=False,
+    )
+
+    class Meta:
+        ordering = ("recipe",)
+        verbose_name = "Количество ингредиента"
+        verbose_name_plural = "Количество ингредиентов"
+        constraints = [
+            models.UniqueConstraint(
+                fields=("recipe", "ingredient"), name="unique ingredient"
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"В рецепте {self.recipe.name} {self.amount} "
+            f"{self.ingredient.measurement_unit} {self.ingredient.name}"
+        )
+
+
 class RecipeFavorite(models.Model):
     user = models.ForeignKey(
         User,
-        related_name="recipe",
+        related_name="favorites",
         verbose_name="Автор списка избранного",
         help_text="Выберите автора",
         on_delete=models.CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
-        related_name="recipe",
+        related_name="in_favorites",
         verbose_name="Избранный рецепт",
         help_text="Выберите рецепт",
         on_delete=models.CASCADE,
@@ -154,45 +185,15 @@ class RecipeFavorite(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=("user", "recipe"), name="unique_favourite"
+                fields=("user", "recipe"), name="unique favourite"
             )
         ]
         verbose_name = "Избранное"
         verbose_name_plural = "Избранные"
         ordering = ("id",)
 
-
-class IngredientAmount(models.Model):
-    recipe = models.ForeignKey(
-        Recipe,
-        related_name="ingredient_amount",
-        verbose_name="Рецепт",
-        help_text="Выберите рецепт",
-        on_delete=models.CASCADE,
-    )
-    ingredient = models.ForeignKey(
-        Ingredient,
-        related_name="ingredient_amount",
-        verbose_name="Ингредиент",
-        help_text="Добавить ингредиенты рецепта в корзину",
-        on_delete=models.CASCADE,
-    )
-    amount = models.IntegerField(
-        verbose_name="Количество",
-        help_text="Введите количество ингредиентов",
-        validators=[
-            MinValueValidator(1, "Количество не может быть < 1."),
-        ],
-        null=False,
-        blank=False,
-    )
-
-    class Meta:
-        verbose_name = "Ингредиент в рецепте"
-        verbose_name_plural = "Ингредиенты в рецепте"
-
-    def __str__(self):
-        return f"{self.ingredient}: {self.amount}"
+    def __str__(self) -> str:
+        return f"{self.user} -> {self.recipe}"
 
 
 class ShoppingCart(models.Model):
@@ -212,6 +213,7 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
+        ordering = ("id",)
         constraints = [
             models.UniqueConstraint(
                 fields=("user", "recipe"),
@@ -219,7 +221,7 @@ class ShoppingCart(models.Model):
             )
         ]
         verbose_name = "Список покупок"
-        verbose_name_plural = "Списки покупок"
+        verbose_name_plural = "Список покупок"
 
     def __str__(self):
         return (
@@ -243,7 +245,7 @@ class Subscribe(models.Model):
     author = models.ForeignKey(
         User,
         verbose_name="Автор рецепта",
-        related_name="following",
+        related_name="followed_by",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
@@ -254,10 +256,5 @@ class Subscribe(models.Model):
         verbose_name = "Подписка"
         verbose_name_plural = "Подписки"
         constraints = [
-            UniqueConstraint(
-                fields=["user", "author"], name="unique_user_author"
-            )
+            UniqueConstraint(fields=["user", "author"], name="follow_unique")
         ]
-
-    def __str__(self):
-        return f"Подписка {self.user.username} на {self.author.username}"

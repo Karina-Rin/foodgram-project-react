@@ -8,7 +8,6 @@ max_email_length = settings.MAX_EMAIL_LENGTH
 
 
 class User(AbstractUser):
-    USERNAME_FIELD = "username"
     username = models.CharField(
         verbose_name="Логин",
         max_length=max_username_length,
@@ -39,10 +38,17 @@ class User(AbstractUser):
         help_text=(f"Максимум {max_username_length} символов."),
     )
 
+    USERNAME_FIELD = "username"
+
     class Meta:
         ordering = ("username",)
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
+        constraints = [
+            models.UniqueConstraint(
+                fields=("username", "email"), name="unique_username_email"
+            )
+        ]
 
     def __str__(self):
         return self.username
