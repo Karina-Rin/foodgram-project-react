@@ -7,23 +7,15 @@ from users.models import User
 class UserAdmin(UserAdmin):
     list_display = (
         "pk",
-        "id",
         "username",
         "email",
         "first_name",
         "last_name",
+        "is_active",
         "last_login",
-        "is_staff",
-        "is_superuser",
     )
-    list_display_links = ("username", "first_name", "last_name")
-    list_filter = ("is_staff", "is_superuser", "first_name", "email")
-    search_fields = (
-        "username",
-        "email",
-        "first_name",
-        "last_name",
-    )
+    list_editable = ("is_active",)
+    search_fields = ("username", "email")
     empty_value_display = "-пусто-"
 
 
