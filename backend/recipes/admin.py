@@ -46,7 +46,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ("author", "name", "tags")
     exclude = ("ingredients",)
     filter_vertical = ("tags",)
-    inlines = (IngredientAmountAdmin,)
+    inlines = (IngredientRecipeInline,)
     empty_value_display = "-пусто-"
 
     def get_image(self, obj: Recipe) -> SafeString:
