@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.safestring import SafeString, mark_safe
 
 from recipes.models import (Ingredient, IngredientAmount, Recipe,
-                            RecipeFavorite, Subscribe, Tag)
+                            RecipeFavorite, ShoppingCart, Subscribe, Tag)
 
 
 class IngredientRecipeInline(admin.TabularInline):
@@ -84,9 +84,17 @@ class SubscribeAdmin(admin.ModelAdmin):
     empy_value_display = "-пусто-"
 
 
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ("recipe", "user")
+    list_filter = ("recipe", "user")
+    search_fields = ("user",)
+    empty_value_display = "-пусто-"
+
+
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(IngredientAmount, IngredientAmountAdmin)
 admin.site.register(RecipeFavorite, RecipeFavoriteAdmin)
 admin.site.register(Subscribe, SubscribeAdmin)
+admin.site.register(ShoppingCart, ShoppingCartAdmin)

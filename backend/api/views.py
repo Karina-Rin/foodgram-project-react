@@ -1,51 +1,23 @@
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.filters import RecipeFilter
+from api.pagination import Pagination
 from api.permissions import IsAdmin
 from api.serializers import (CustomUserSerializer, IngredientSerializer,
                              MiniRecipeSerializer, RecipeCreateSerializer,
-                             RecipeSerializer, RegistrationUserSerializer,
-                             SetPasswordSerializer, SubscribeSerializer,
+                             RecipeSerializer, SubscribeSerializer,
                              TagSerializer)
 from api.utils import delete_for_actions, get_cart_txt, post_for_actions
 from recipes.models import (Ingredient, IngredientAmount, Recipe,
                             RecipeFavorite, ShoppingCart, Subscribe, Tag)
 from users.models import User
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-
-    def get_serializer_class(self):
-        if self.action == "set_password":
-            return SetPasswordSerializer
-        if self.action == "create":
-            return RegistrationUserSerializer
-        return CustomUserSerializer
-
-    def get_permissions(self):
-        if self.action == "me":
-            self.permission_classes = [IsAuthenticated]
-        return super().get_permissions()
-
-    @action(detail=False, permission_classes=(IsAuthenticated,))
-    def subscriptions(self, request):
-        queryset = Subscribe.objects.filter(user=request.user)
-        pages = self.paginate_queryset(queryset)
-        serializer = SubscribeSerializer(
-            pages,
-            many=True,
-            context={"request": request},
-        )
-        return self.get_paginated_response(serializer.data)
 
 
 class SubscribeViewSet(viewsets.GenericViewSet):
@@ -190,3 +162,40 @@ class ShoppingCartViewSet(viewsets.GenericViewSet):
             .annotate(total_amount=Sum("amount"))
         )
         return get_cart_txt(ingredients)
+
+
+class UserViewSet(UserViewSet):
+    queryset = User.objects.all()
+    serializer_class = CustomUserSerializer
+    pagination_class = Pagination
+
+    @action(
+        detail=True,
+        methods=["post", "delete"],
+        permission_classes=[IsAuthenticated],
+    )
+    def subscribe(self, request, id):
+        user = request.user
+        author = get_object_or_404(User, pk=id)
+
+        if request.method == "POST":
+            serializer = SubscribeSerializer(
+                author, data=request.data, context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            Subscribe.objects.create(user=user, author=author)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == "DELETE":
+            get_object_or_404(Subscribe, user=user, author=author).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, permission_classes=[IsAuthenticated])
+    def subscriptions(self, request):
+        user = request.user
+        queryset = User.objects.filter(following__user=user)
+        pages = self.paginate_queryset(queryset)
+        serializer = SubscribeSerializer(
+            pages, many=True, context={"request": request}
+        )
+        return self.get_paginated_response(serializer.data)

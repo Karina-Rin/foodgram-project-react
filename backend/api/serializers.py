@@ -1,10 +1,9 @@
 import base64
 
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
-from djoser.serializers import (PasswordSerializer, UserCreateSerializer,
-                                UserSerializer)
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -15,18 +14,11 @@ from users.models import User
 class RegistrationUserSerializer(UserCreateSerializer):
     class Meta:
         model = User
-        fields = (
-            "email",
-            "id",
-            "username",
-            "first_name",
-            "last_name",
-            "password",
-        )
+        fields = ("email", "username", "first_name", "last_name", "password")
 
 
 class CustomUserSerializer(UserSerializer):
-    is_subscribed = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -40,12 +32,10 @@ class CustomUserSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        if self.context["request"].user.is_authenticated:
-            user = get_object_or_404(
-                User, username=self.context["request"].user
-            )
-            return user.follower.filter(author=obj.id).exists()
-        return False
+        request = self.context.get("request")
+        if self.context.get("request").user.is_anonymous:
+            return False
+        return obj.following.filter(user=request.user).exists()
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -261,22 +251,3 @@ class SubscribeSerializer(CustomUserSerializer):
             "recipes",
             "recipes_count",
         )
-
-
-class SetPasswordSerializer(PasswordSerializer):
-    current_password = serializers.CharField(
-        required=True, label="Текущий пароль"
-    )
-
-    def validate(self, data):
-        user = self.context.get("request").user
-        if data["new_password"] == data["current_password"]:
-            raise serializers.ValidationError(
-                {"new_password": "Пароли не должны совпадать"}
-            )
-        check_current = check_password(data["current_password"], user.password)
-        if check_current is False:
-            raise serializers.ValidationError(
-                {"current_password": "Введен неверный пароль"}
-            )
-        return data
