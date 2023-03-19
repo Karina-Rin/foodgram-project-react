@@ -3,18 +3,49 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
 from api.filters import RecipeFilter
 from api.permissions import IsAdmin
-from api.serializers import (IngredientSerializer, MiniRecipeSerializer,
-                             RecipeCreateSerializer, RecipeSerializer,
-                             SubscribeSerializer, TagSerializer)
+from api.serializers import (CustomUserSerializer, IngredientSerializer,
+                             MiniRecipeSerializer, RecipeCreateSerializer,
+                             RecipeSerializer, RegistrationUserSerializer,
+                             SetPasswordSerializer, SubscribeSerializer,
+                             TagSerializer)
 from api.utils import delete_for_actions, get_cart_txt, post_for_actions
 from recipes.models import (Ingredient, IngredientAmount, Recipe,
                             RecipeFavorite, ShoppingCart, Subscribe, Tag)
 from users.models import User
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action == "set_password":
+            return SetPasswordSerializer
+        if self.action == "create":
+            return RegistrationUserSerializer
+        return CustomUserSerializer
+
+    def get_permissions(self):
+        if self.action == "me":
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+
+    @action(detail=False, permission_classes=(IsAuthenticated,))
+    def subscriptions(self, request):
+        queryset = Subscribe.objects.filter(user=request.user)
+        pages = self.paginate_queryset(queryset)
+        serializer = SubscribeSerializer(
+            pages,
+            many=True,
+            context={"request": request},
+        )
+        return self.get_paginated_response(serializer.data)
 
 
 class SubscribeViewSet(viewsets.GenericViewSet):

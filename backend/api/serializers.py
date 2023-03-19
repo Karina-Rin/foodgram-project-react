@@ -1,8 +1,10 @@
 import base64
 
+from django.contrib.auth.hashers import check_password
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import (PasswordSerializer, UserCreateSerializer,
+                                UserSerializer)
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -135,7 +137,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             user = get_object_or_404(
                 User, username=self.context["request"].user
             )
-            return user.cart.filter(recipe=obj.id).exists()
+            return user.shopping_cart.filter(recipe=obj.id).exists()
         return False
 
 
@@ -259,3 +261,22 @@ class SubscribeSerializer(CustomUserSerializer):
             "recipes",
             "recipes_count",
         )
+
+
+class SetPasswordSerializer(PasswordSerializer):
+    current_password = serializers.CharField(
+        required=True, label="Текущий пароль"
+    )
+
+    def validate(self, data):
+        user = self.context.get("request").user
+        if data["new_password"] == data["current_password"]:
+            raise serializers.ValidationError(
+                {"new_password": "Пароли не должны совпадать"}
+            )
+        check_current = check_password(data["current_password"], user.password)
+        if check_current is False:
+            raise serializers.ValidationError(
+                {"current_password": "Введен неверный пароль"}
+            )
+        return data
