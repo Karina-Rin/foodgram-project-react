@@ -270,7 +270,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, pk):
         if self.request.method == "POST":
             return post_for_actions(
-                request, pk, RecipeFavorite, SubscribeSerializer
+                request,
+                pk,
+                RecipeFavorite,
             )
         return delete_for_actions(request, pk, RecipeFavorite)
 
@@ -281,6 +283,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, pk):
         if request.method == "POST":
             return post_for_actions(
-                request, pk, ShoppingCart, SubscribeSerializer
+                request,
+                pk,
+                ShoppingCart,
             )
         return delete_for_actions(request, pk, ShoppingCart)
