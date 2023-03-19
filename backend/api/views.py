@@ -189,6 +189,7 @@ class UserViewSet(UserViewSet):
         if request.method == "DELETE":
             get_object_or_404(Subscribe, user=user, author=author).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
