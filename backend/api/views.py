@@ -18,7 +18,6 @@ from users.models import User
 
 
 class SubscribeViewSet(viewsets.GenericViewSet):
-
     serializer_class = SubscribeSerializer
     queryset = User.objects.all()
 
@@ -64,14 +63,12 @@ class SubscribeViewSet(viewsets.GenericViewSet):
 
 
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
-
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
     pagination_class = None
 
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
-
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
     pagination_class = None
@@ -95,7 +92,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
 
 class FavoriteViewSet(viewsets.GenericViewSet):
-
     serializer_class = MiniRecipeSerializer
     queryset = Recipe.objects.all()
 
@@ -123,7 +119,6 @@ class FavoriteViewSet(viewsets.GenericViewSet):
 
 
 class ShoppingCartViewSet(viewsets.GenericViewSet):
-
     serializer_class = MiniRecipeSerializer
     queryset = Recipe.objects.all()
 

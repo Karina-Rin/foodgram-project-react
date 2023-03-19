@@ -55,16 +55,16 @@ class RecipeAdmin(admin.ModelAdmin):
     get_image.short_description = "Изображение"
 
     def count_favorites(self, obj: Recipe) -> int:
-        return obj.favorite_recipe.count()
+        return obj.recipe.count()
 
     count_favorites.short_description = "В избранном"
 
 
 class RecipeFavoriteAdmin(admin.ModelAdmin):
-    list_display = ("pk", "user", "favorite_recipe")
+    list_display = ("pk", "user", "recipe")
     list_editable = (
         "user",
-        "favorite_recipe",
+        "recipe",
     )
     list_filter = ("user",)
     empy_value_display = "-пусто-"
