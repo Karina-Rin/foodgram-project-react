@@ -221,7 +221,7 @@ class ShoppingCart(models.Model):
             )
         ]
         verbose_name = "Список покупок"
-        verbose_name_plural = "Список покупок"
+        verbose_name_plural = "Списки покупок"
 
     def __str__(self):
         return (
