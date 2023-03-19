@@ -159,6 +159,13 @@ class FavoriteRecipeViewSet(ListCreateDeleteViewSet):
         )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def post(self, request, pk):
+        recipe = Recipe.objects.get(pk=pk)
+        user = request.user
+        favorite = RecipeFavorite.objects.create(recipe=recipe, user=user)
+        favorite.save()
+        return Response({"status": "success"}, status=status.HTTP_200_OK)
+
     @action(methods=("delete",), detail=True)
     def delete(self, request, recipe_id):
         try:
@@ -189,6 +196,7 @@ class ShoppingCartViewSet(ListCreateDeleteViewSet):
         return context
 
     def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
         recipe = get_object_or_404(Recipe, id=self.kwargs.get("recipe_id"))
         if recipe.author != self.request.user:
             return Response(
