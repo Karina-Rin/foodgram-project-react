@@ -127,7 +127,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             user = get_object_or_404(
                 User, username=self.context["request"].user
             )
-            return user.favorite.filter(recipe=obj.id).exists()
+            return user.recipe.filter(recipe=obj.id).exists()
         return False
 
     def get_is_in_shopping_cart(self, obj):

@@ -10,8 +10,10 @@ v1_router.register("users", SubscribeViewSet, basename="subscribe")
 v1_router.register("recipes", RecipesViewSet, basename="recipe")
 v1_router.register("ingredients", IngredientsViewSet, basename="ingredient")
 v1_router.register("tags", TagsViewSet, basename="tag")
-v1_router.register("recipes", ShoppingCartViewSet, basename="shopping_cart")
-v1_router.register("recipes", FavoriteViewSet, basename="favorite")
+v1_router.register(
+    "shopping_cart", ShoppingCartViewSet, basename="shopping_cart"
+)
+v1_router.register("favorites", FavoriteViewSet, basename="favorite")
 
 
 urlpatterns = [
