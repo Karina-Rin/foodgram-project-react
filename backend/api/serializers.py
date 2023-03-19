@@ -10,7 +10,7 @@ from recipes.models import Ingredient, IngredientAmount, Recipe, Tag
 from users.models import User
 
 
-class CustomUserCreateSerializer(UserCreateSerializer):
+class RegistrationUserSerializer(UserCreateSerializer):
     class Meta:
         model = User
         fields = (
@@ -24,7 +24,6 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 
 class CustomUserSerializer(UserSerializer):
-
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
