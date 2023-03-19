@@ -15,9 +15,9 @@ from api.mixins import ListCreateDeleteViewSet
 from api.permissions import IsAdmin
 from api.serializers import (FavoriteRecipeSerializer, IngredientSerializer,
                              RecipeCreateSerializer, RecipeSerializer,
-                             SetPasswordSerializer, ShoppingCartSerializer,
-                             SubscribeSerializer, TagSerializer,
-                             UserCreateSerializer, UserReadSerializer)
+                             RegistrationUserSerializer,
+                             ShoppingCartSerializer, SubscribeSerializer,
+                             TagSerializer)
 from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
                             Subscribe, Tag)
 
@@ -41,30 +41,15 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class UserViewSet(UserViewSet):
     queryset = User.objects.all()
+    serializer_class = RegistrationUserSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    def get_serializer_class(self):
-        if self.action == "set_password":
-            return SetPasswordSerializer
-        if self.action == "create":
-            return UserCreateSerializer
-        return UserReadSerializer
-
-    def get_permissions(self):
-        if self.action == "me":
-            self.permission_classes = [IsAuthenticated]
-        return super().get_permissions()
-
-    @action(detail=False, permission_classes=(IsAuthenticated,))
-    def subscriptions(self, request):
-        queryset = Subscribe.objects.filter(user=request.user)
-        pages = self.paginate_queryset(queryset)
-        serializer = SubscribeSerializer(
-            pages,
-            many=True,
-            context={"request": request},
-        )
-        return self.get_paginated_response(serializer.data)
+    @action(
+        detail=False, methods=["get"], permission_classes=(IsAuthenticated,)
+    )
+    def me(self, request):
+        serializer = self.get_serializer(self.request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class SubscribeViewSet(ListCreateDeleteViewSet):

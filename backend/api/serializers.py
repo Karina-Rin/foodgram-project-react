@@ -132,7 +132,7 @@ class IngredientAmountRecipeSerializer(serializers.ModelSerializer):
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     image = Base64ImageField(max_length=None, use_url=True)
-    ingredients = IngredientAmountSerializer(many=True)
+    ingredients = IngredientAmountSerializer(source="ingredient", many=True)
     author = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
