@@ -3,24 +3,39 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import UserCreateSerializer
 from rest_framework import status, viewsets
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 
 from api.filters import IngredientSearchFilter, RecipeFilter
 from api.mixins import ListCreateDeleteViewSet
 from api.pagination import Pagination
 from api.permissions import IsAdmin
-from api.serializers import (FavoriteRecipeSerializer, IngredientSerializer,
-                             RecipeCreateSerializer, RecipeSerializer,
-                             SetPasswordSerializer, ShoppingCartSerializer,
-                             SubscribeSerializer, TagSerializer,
-                             UserCreateSerializer, UserReadSerializer)
+from api.serializers import (
+    FavoriteRecipeSerializer,
+    IngredientSerializer,
+    RecipeCreateSerializer,
+    RecipeSerializer,
+    SetPasswordSerializer,
+    ShoppingCartSerializer,
+    SubscribeSerializer,
+    TagSerializer,
+    UserCreateSerializer,
+    UserReadSerializer,
+)
 from api.utils import delete_for_actions, post_for_actions
-from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
-                            Subscribe, Tag)
+from recipes.models import (
+    Ingredient,
+    Recipe,
+    RecipeFavorite,
+    ShoppingCart,
+    Subscribe,
+    Tag,
+)
 from users.models import User
 
 
