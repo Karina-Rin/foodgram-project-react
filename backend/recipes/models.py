@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import UniqueConstraint
@@ -7,8 +6,6 @@ from django.db.models import UniqueConstraint
 from users.models import User
 
 max_legth = settings.MAX_LEGTH
-
-User = get_user_model()
 
 
 class Tag(models.Model):

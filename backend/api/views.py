@@ -1,11 +1,9 @@
-from django.contrib.auth import get_user_model
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import UserCreateSerializer
-from djoser.views import UserViewSet
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
@@ -23,11 +21,10 @@ from api.serializers import (FavoriteRecipeSerializer, IngredientSerializer,
 from api.utils import delete_for_actions, post_for_actions
 from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
                             Subscribe, Tag)
+from users.models import User
 
-User = get_user_model()
 
-
-class UserViewSet(UserViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
@@ -48,11 +45,17 @@ class UserViewSet(UserViewSet):
         queryset = Subscribe.objects.filter(user=request.user)
         pages = self.paginate_queryset(queryset)
         serializer = SubscribeSerializer(
-            pages,
-            many=True,
-            context={"request": request},
+            pages, many=True, context={"request": request}
         )
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, methods=["POST"])
+    def set_password(self, request, pk=None):
+        user = self.get_object()
+        new_password = request.data.get("password")
+        user.set_password(new_password)
+        user.save()
+        return Response(status=200)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
