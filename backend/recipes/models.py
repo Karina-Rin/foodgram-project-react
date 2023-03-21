@@ -1,12 +1,26 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import (MaxValueValidator, MinLengthValidator,
-                                    MinValueValidator)
-from django.db.models import (CASCADE, PROTECT, SET_NULL, CharField,
-                              CheckConstraint, DateTimeField, ForeignKey,
-                              ImageField, ManyToManyField, Model,
-                              PositiveSmallIntegerField, Q, TextField,
-                              UniqueConstraint)
+from django.core.validators import (
+    MaxValueValidator,
+    MinLengthValidator,
+    MinValueValidator,
+)
+from django.db.models import (
+    CASCADE,
+    PROTECT,
+    SET_NULL,
+    CharField,
+    CheckConstraint,
+    DateTimeField,
+    ForeignKey,
+    ImageField,
+    ManyToManyField,
+    Model,
+    PositiveSmallIntegerField,
+    Q,
+    TextField,
+    UniqueConstraint,
+)
 from django.db.models.functions import Length
 from PIL import Image
 
@@ -65,12 +79,12 @@ class Ingredient(Model):
     name = TextField(
         verbose_name="Название ингредиента",
         help_text="Введите название ингредиента",
-        max_length=max_legth,
+        max_length=100,
         validators=[MinLengthValidator(1)],
     )
     measurement_unit = TextField(
         verbose_name="Единицы измерения",
-        max_length=max_legth,
+        max_length=100,
         help_text="Введите единицы измерения",
         validators=[MinLengthValidator(1)],
     )
