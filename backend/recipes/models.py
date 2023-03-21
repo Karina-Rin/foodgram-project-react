@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import (MaxValueValidator, MinLengthValidator,
-                                    MinValueValidator, RegexValidator)
+                                    MinValueValidator)
 from django.db.models import (CASCADE, PROTECT, SET_NULL, CharField,
                               CheckConstraint, DateTimeField, ForeignKey,
                               ImageField, ManyToManyField, Model,
@@ -28,7 +28,6 @@ class Tag(Model):
         verbose_name="Название",
         max_length=max_legth,
         help_text="Введите название тэга",
-        validators=(RegexValidator(field="Название тэга"),),
         unique=True,
     )
     color = CharField(

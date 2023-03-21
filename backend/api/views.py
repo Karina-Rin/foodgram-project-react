@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+from typing import List
 from urllib.parse import unquote
 
 from django.conf import settings
@@ -7,7 +8,6 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import F, Q, QuerySet, Sum
 from django.http.response import HttpResponse
 from djoser.views import UserViewSet as DjoserUserViewSet
-from rest_framework import list
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
@@ -68,7 +68,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (AdminOrReadOnly,)
 
-    def get_queryset(self) -> list[Ingredient]:
+    def get_queryset(self) -> List[Ingredient]:
         name: str = self.request.query_params.get("name")
         queryset = self.queryset
 
@@ -103,30 +103,16 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     pagination_class = PageLimitPagination
     add_serializer = ShortRecipeSerializer
 
-    def get_queryset(self) -> QuerySet[Recipe]:
-        queryset = Recipe.objects.select_related("author")
-
-        if self.request.user.is_authenticated:
-            is_in_shopping_cart = self.request.query_params.get(
-                "is_in_shopping_cart"
-            )
-            is_favorit = self.request.query_params.get("is_favorited")
-
-            if is_in_shopping_cart in ["1", "true"]:
-                queryset = queryset.filter(in_carts__user=self.request.user)
-            elif is_in_shopping_cart in ["0", "false"]:
-                queryset = queryset.exclude(in_carts__user=self.request.user)
-
-            if is_favorit in ["1", "true"]:
-                queryset = queryset.filter(
-                    in_favorites__user=self.request.user
-                )
-            elif is_favorit in ["0", "false"]:
-                queryset = queryset.exclude(
-                    in_favorites__user=self.request.user
-                )
-
-        return RecipeSerializer(queryset, many=True).data
+    def get_queryset(self):
+        is_favorited = self.request.query_params.get("is_favorited")
+        if is_favorited is not None and int(is_favorited) == 1:
+            return Recipe.objects.filter(recipe__user=self.request.user)
+        is_in_shopping_cart = self.request.query_params.get(
+            "is_in_shopping_cart"
+        )
+        if is_in_shopping_cart is not None and int(is_in_shopping_cart) == 1:
+            return Recipe.objects.filter(shopping_cart__user=self.request.user)
+        return Recipe.objects.all()
 
     @action(
         methods=("GET", "POST", "DELETE"),

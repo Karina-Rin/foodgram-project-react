@@ -2,6 +2,10 @@ from rest_framework.permissions import (SAFE_METHODS, BasePermission,
                                         IsAdminUser, IsAuthenticated)
 
 
+class OwnerUserOrReadOnly(BasePermission):
+    pass
+
+
 class IsAuthorOrReadOnly(BasePermission):
     message = "Только автору разрешено вносить изменения."
 
@@ -20,7 +24,7 @@ class IsOwnerOrReadOnly(BasePermission):
         return obj.owner == request.user
 
 
-class IsAdminOrReadOnly(BasePermission):
+class AdminOrReadOnly(BasePermission):
     message = "Только администраторам разрешено вносить изменения."
 
     def has_permission(self, request, view):
@@ -29,7 +33,7 @@ class IsAdminOrReadOnly(BasePermission):
         return IsAdminUser().has_permission(request, view)
 
 
-class IsStaffOrReadOnly(BasePermission):
+class AuthorStaffOrReadOnly(BasePermission):
     message = "Только персоналу разрешено вносить изменения."
 
     def has_permission(self, request, view):

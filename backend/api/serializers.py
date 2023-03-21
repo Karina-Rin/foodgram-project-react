@@ -1,8 +1,9 @@
 from collections import OrderedDict
+from typing import Dict, List
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.db.models import F, QuerySet
+from django.db.models import F
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
@@ -127,12 +128,12 @@ class RecipeSerializer(ModelSerializer):
             "is_shopping_cart",
         )
 
-    def get_ingredients(self, recipe: Recipe) -> QuerySet[dict]:
+    def get_ingredients(self, recipe: Recipe) -> List[Dict]:
         ingredients = recipe.ingredients.values(
             "id", "name", "measurement_unit", amount=F("recipe__amount")
         )
-        ingredients.save()
-        return ingredients
+        ingredient_list = list(ingredients)
+        return ingredient_list
 
     def get_is_favorited(self, recipe: Recipe) -> bool:
         user = self.context.get("view").request.user
