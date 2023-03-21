@@ -6,8 +6,9 @@ from django.db.models import F, QuerySet
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from api.validators import ingredients_exist_validator, tags_exist_validator
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
+from recipes.validators import (ingredients_exist_validator,
+                                tags_exist_validator)
 
 User = get_user_model()
 

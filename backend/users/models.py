@@ -9,7 +9,7 @@ from django.db.models import (CASCADE, BooleanField, CharField,
 from django.db.models.functions import Length
 from django.utils.translation import gettext_lazy as _
 
-from api.validators import LanguageValidator, MinLenValidator
+from recipes.validators import LanguageValidator, MinLenValidator
 
 CharField.register_lookup(Length)
 

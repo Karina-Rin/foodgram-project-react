@@ -10,7 +10,7 @@ from django.db.models import (CASCADE, PROTECT, SET_NULL, CharField,
 from django.db.models.functions import Length
 from PIL import Image
 
-from api.validators import LanguageValidator, hex_color_validator
+from recipes.validators import LanguageValidator, hex_color_validator
 
 max_legth = settings.MAX_LEGTH
 min_cook_time = settings.MIN_COOK_TIME
