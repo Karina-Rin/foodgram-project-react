@@ -1,27 +1,12 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import (
-    MaxValueValidator,
-    MinLengthValidator,
-    MinValueValidator,
-)
-from django.db.models import (
-    CASCADE,
-    PROTECT,
-    SET_NULL,
-    CharField,
-    CheckConstraint,
-    DateTimeField,
-    ForeignKey,
-    ImageField,
-    ManyToManyField,
-    Model,
-    PositiveSmallIntegerField,
-    Q,
-    TextField,
-    UniqueConstraint,
-)
-from django.db.models.functions import Length
+from django.core.validators import (MaxValueValidator, MinLengthValidator,
+                                    MinValueValidator)
+from django.db.models import (CASCADE, PROTECT, SET_NULL, CharField,
+                              CheckConstraint, DateTimeField, ForeignKey,
+                              ImageField, ManyToManyField, Model,
+                              PositiveSmallIntegerField, Q, TextField,
+                              UniqueConstraint)
 from PIL import Image
 
 max_legth = settings.MAX_LEGTH
@@ -31,8 +16,6 @@ recipe_umage_size = settings.RECIPE_IMAGE_SIZE
 min_amount_imgr = settings.MIN_AMOUNT_INGR
 max_amount_imgr = settings.MAX_AMOUNT_INGR
 
-
-CharField.register_lookup(Length)
 
 User = get_user_model()
 
@@ -79,12 +62,12 @@ class Ingredient(Model):
     name = TextField(
         verbose_name="Название ингредиента",
         help_text="Введите название ингредиента",
-        max_length=100,
+        max_length=max_legth,
         validators=[MinLengthValidator(1)],
     )
     measurement_unit = TextField(
         verbose_name="Единицы измерения",
-        max_length=100,
+        max_length=max_legth,
         help_text="Введите единицы измерения",
         validators=[MinLengthValidator(1)],
     )
