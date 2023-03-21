@@ -97,8 +97,7 @@ class User(AbstractUser):
                 f"{email} это недопустимый адрес электронной почты"
             )
         email_name, domain_part = email.strip().rsplit("@", 1)
-        email = email_name.lower() + "@" + domain_part.lower()
-        return email
+        return email_name.lower() + "@" + domain_part
 
     @classmethod
     def normalize_username(cls, username: str) -> str:

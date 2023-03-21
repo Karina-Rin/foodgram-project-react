@@ -69,8 +69,8 @@ def hex_color_validator(color: str) -> str:
     return "#" + color.upper()
 
 
-def tags_exist_validator(tags_ids: list[int or str], Tag: "Tag") -> None:
-    exists_tags = Tag.objects.filter(id__in=tags_ids)
+def tags_exist_validator(tags_ids: list[int or str], tag: "Tag") -> None:
+    exists_tags = tag.objects.filter(id__in=tags_ids)
 
     if len(exists_tags) != len(tags_ids):
         raise ValidationError(
@@ -79,7 +79,7 @@ def tags_exist_validator(tags_ids: list[int or str], Tag: "Tag") -> None:
 
 
 def ingredients_exist_validator(
-    ingredients: list, Ingredient: "Ingredient"
+    ingredients: list, ingredient: "Ingredient"
 ) -> list:
     ings_ids = [None] * len(ingredients)
 

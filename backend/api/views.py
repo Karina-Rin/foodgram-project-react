@@ -25,7 +25,6 @@ from api.serializers import (IngredientSerializer, RecipeSerializer,
                              TagSerializer)
 from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
                             Tag)
-from users.models import Subscribe
 
 incorrect_layout = str.maketrans(
     "qwertyuiop[]asdfghjkl;'zxcvbnm,./", "йцукенгшщзхъфывапролджэячсмитьбю."
@@ -59,9 +58,8 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
         elif request.method == "POST":
             request.user.subscriptions.create(author=user)
             return Response(status=HTTP_201_CREATED)
-        elif request.method == "DELETE":
-            request.user.subscriptions.filter(author=user).delete()
-            return Response(status=HTTP_204_NO_CONTENT)
+        request.user.subscriptions.filter(author=user).delete()
+        return Response(status=HTTP_204_NO_CONTENT)
 
     @action(methods=("get",), detail=False)
     def subscriptions(self, request: WSGIRequest) -> Response:
@@ -89,15 +87,15 @@ class IngredientViewSet(ReadOnlyModelViewSet):
                 name = unquote(name)
             else:
                 name = name.translate(incorrect_layout)
-
             name = name.lower()
+
             start_queryset = list(queryset.filter(name__istartswith=name))
             ingridients_set = set(start_queryset)
             cont_queryset = queryset.filter(name__icontains=name)
-            start_queryset.extend(
-                [ing for ing in cont_queryset if ing not in ingridients_set]
-            )
-            queryset = start_queryset
+
+            return start_queryset + [
+                ing for ing in cont_queryset if ing not in ingridients_set
+            ]
 
         return queryset
 
@@ -116,7 +114,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     add_serializer = ShortRecipeSerializer
 
     def get_queryset(self) -> QuerySet[Recipe]:
-        queryset = self.queryset
+        queryset = Recipe.objects.select_related("author")
 
         tags: list = self.request.query_params.getlist("tags")
         if tags:

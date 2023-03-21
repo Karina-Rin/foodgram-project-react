@@ -52,6 +52,7 @@ class UserSerializer(ModelSerializer):
             last_name=validated_data["last_name"],
             password=validated_data["password"],
         )
+        user.save()
         return user
 
 
@@ -131,6 +132,7 @@ class RecipeSerializer(ModelSerializer):
         ingredients = recipe.ingredients.values(
             "id", "name", "measurement_unit", amount=F("recipe__amount")
         )
+        ingredients.save()
         return ingredients
 
     def get_is_favorited(self, recipe: Recipe) -> bool:
