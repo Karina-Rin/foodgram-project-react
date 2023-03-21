@@ -113,11 +113,12 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         author: str = self.request.query_params.get("author")
         if author:
             queryset = queryset.filter(author=author)
+
         if self.request.user.is_anonymous:
             return queryset
 
         is_in_shopping_cart: str = self.request.query_params.get(
-            is_in_shopping_cart
+            "is_in_shopping_cart"
         )
         if is_in_shopping_cart in ["1", "true"]:
             queryset = queryset.filter(in_carts__user=self.request.user)
@@ -129,6 +130,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
             queryset = queryset.filter(in_favorites__user=self.request.user)
         if is_favorit in ["0", "false"]:
             queryset = queryset.exclude(in_favorites__user=self.request.user)
+
         return queryset
 
     @action(
