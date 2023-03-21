@@ -24,6 +24,7 @@ class User(AbstractUser):
     password = CharField(
         verbose_name=_("Пароль"),
         max_length=max_password_length,
+        db_index=True,
         help_text=(f"Максимум {max_password_length} символов."),
     )
     email = EmailField(
@@ -36,11 +37,13 @@ class User(AbstractUser):
     first_name = CharField(
         verbose_name="Имя",
         max_length=max_username_length,
+        db_index=True,
         help_text=(f"Максимум {max_username_length} символов."),
     )
     last_name = CharField(
         verbose_name="Фамилия",
         max_length=max_username_length,
+        db_index=True,
         help_text=(f"Максимум {max_username_length} символов."),
     )
     active = BooleanField(

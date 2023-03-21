@@ -24,6 +24,7 @@ class Tag(Model):
     name = CharField(
         verbose_name="Название",
         max_length=max_legth,
+        db_index=True,
         help_text="Введите название тэга",
         unique=True,
     )
@@ -63,11 +64,13 @@ class Ingredient(Model):
         verbose_name="Название ингредиента",
         help_text="Введите название ингредиента",
         max_length=max_legth,
+        db_index=True,
         validators=[MinLengthValidator(1)],
     )
     measurement_unit = TextField(
         verbose_name="Единицы измерения",
         max_length=max_legth,
+        db_index=True,
         help_text="Введите единицы измерения",
         validators=[MinLengthValidator(1)],
     )
@@ -136,6 +139,7 @@ class Recipe(Model):
         verbose_name="Описание рецепта",
         help_text="Введите описание рецепта",
         max_length=max_legth,
+        db_index=True,
     )
     cooking_time = PositiveSmallIntegerField(
         verbose_name="Время приготовления",
