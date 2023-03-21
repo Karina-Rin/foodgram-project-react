@@ -132,8 +132,7 @@ class RecipeSerializer(ModelSerializer):
         ingredients = recipe.ingredients.values(
             "id", "name", "measurement_unit", amount=F("recipe__amount")
         )
-        ingredient_list = list(ingredients)
-        return ingredient_list
+        return list(ingredients)
 
     def get_is_favorited(self, recipe: Recipe) -> bool:
         user = self.context.get("view").request.user
