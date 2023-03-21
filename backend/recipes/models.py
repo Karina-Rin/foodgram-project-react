@@ -275,10 +275,7 @@ class RecipeFavorite(Model):
                     "recipe",
                     "user",
                 ),
-                name=(
-                    f"\n%(app_label)s_%(class)s рецепт уже в списке "
-                    f"избранных\n",
-                ),
+                name="Рецепт уже в избранном",
             ),
         )
 

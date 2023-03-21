@@ -6,15 +6,13 @@ from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import F, Q, QuerySet, Sum
 from django.http.response import HttpResponse
-from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import list
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
-from rest_framework.status import (HTTP_201_CREATED, HTTP_204_NO_CONTENT,
-                                   HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED)
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from api.mixins import AddDelViewMixin
@@ -25,6 +23,7 @@ from api.serializers import (IngredientSerializer, RecipeSerializer,
                              TagSerializer)
 from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
                             Tag)
+from users.models import Subscribe
 
 incorrect_layout = str.maketrans(
     "qwertyuiop[]asdfghjkl;'zxcvbnm,./", "йцукенгшщзхъфывапролджэячсмитьбю."
@@ -50,16 +49,7 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
         permission_classes=(IsAuthenticated,),
     )
     def subscribe(self, request: WSGIRequest, id: int or str) -> Response:
-        user = get_object_or_404(User, id=id)
-        if request.method == "GET":
-            subscriptions = request.user.subscriptions.filter(author=user)
-            serializer = SubscribeSerializer(subscriptions, many=True)
-            return Response(serializer.data)
-        elif request.method == "POST":
-            request.user.subscriptions.create(author=user)
-            return Response(status=HTTP_201_CREATED)
-        request.user.subscriptions.filter(author=user).delete()
-        return Response(status=HTTP_204_NO_CONTENT)
+        return self._add_del_obj(id, Subscribe, Q(author__id=id))
 
     @action(methods=("get",), detail=False)
     def subscriptions(self, request: WSGIRequest) -> Response:
