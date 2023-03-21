@@ -126,7 +126,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
                     in_favorites__user=self.request.user
                 )
 
-        return queryset
+        return RecipeSerializer(queryset, many=True).data
 
     @action(
         methods=("GET", "POST", "DELETE"),
