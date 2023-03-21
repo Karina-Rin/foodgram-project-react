@@ -106,30 +106,25 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     def get_queryset(self) -> QuerySet[Recipe]:
         queryset = Recipe.objects.select_related("author")
 
-        tags: list = self.request.query_params.getlist("tags")
-        if tags:
-            queryset = queryset.filter(tags__slug__in=tags).distinct()
+        if self.request.user.is_authenticated:
+            is_in_shopping_cart = self.request.query_params.get(
+                "is_in_shopping_cart"
+            )
+            is_favorit = self.request.query_params.get("is_favorited")
 
-        author: str = self.request.query_params.get("author")
-        if author:
-            queryset = queryset.filter(author=author)
+            if is_in_shopping_cart in ["1", "true"]:
+                queryset = queryset.filter(in_carts__user=self.request.user)
+            elif is_in_shopping_cart in ["0", "false"]:
+                queryset = queryset.exclude(in_carts__user=self.request.user)
 
-        if self.request.user.is_anonymous:
-            return queryset
-
-        is_in_shopping_cart: str = self.request.query_params.get(
-            "is_in_shopping_cart"
-        )
-        if is_in_shopping_cart in ["1", "true"]:
-            queryset = queryset.filter(in_carts__user=self.request.user)
-        elif is_in_shopping_cart in ["0", "false"]:
-            queryset = queryset.exclude(in_carts__user=self.request.user)
-
-        is_favorit: str = self.request.query_params.get("is_favorited")
-        if is_favorit in ["1", "true"]:
-            queryset = queryset.filter(in_favorites__user=self.request.user)
-        if is_favorit in ["0", "false"]:
-            queryset = queryset.exclude(in_favorites__user=self.request.user)
+            if is_favorit in ["1", "true"]:
+                queryset = queryset.filter(
+                    in_favorites__user=self.request.user
+                )
+            elif is_favorit in ["0", "false"]:
+                queryset = queryset.exclude(
+                    in_favorites__user=self.request.user
+                )
 
         return queryset
 
