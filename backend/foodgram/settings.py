@@ -9,11 +9,9 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "ns6(14uyb7kn3q10kkz+=y8#k!g$$+qhs)ho+6^nzy=9xoru3g"
-# SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = True
 
-# ALLOWED_HOSTS = [os.getenv("ALLOWED_HOSTS", "*"), "*"]
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
@@ -122,13 +120,16 @@ DJOSER = {
     "LOGIN_FIELD": "email",
     "HIDE_USERS": False,
     "SERIALIZERS": {
-        "user_read": "api.serializers.UserReadSerializer",
-        "user_create": "api.serializers.UserCreateSerializer",
-        "user": "api.serializers.RegistrationUserSerializer",
+        "user": "api.serializers.UserSerializer",
+        "user_list": "api.serializers.UserSerializer",
+        "current_user": "api.serializers.UserSerializer",
+        "user_create": "api.serializers.UserSerializer",
     },
     "PERMISSIONS": {
-        "user": ["rest_framework.permissions.IsAuthenticated"],
-        "user_list": ["rest_framework.permissions.AllowAny"],
+        "resipe": ("api.permissions.AuthorStaffOrReadOnly,",),
+        "recipe_list": ("api.permissions.AuthorStaffOrReadOnly",),
+        "user": ("api.permissions.OwnerUserOrReadOnly",),
+        "user_list": ("api.permissions.OwnerUserOrReadOnly",),
     },
 }
 
@@ -136,8 +137,14 @@ MAX_LEGTH = 100
 MAX_EMAIL_LENGTH = 255
 MAX_USERNAME_LENGTH = 150
 MAX_PASSWORD_LENGTH = 150
-
+MIN_COOK_TIME = 1
+MAX_COOK_TIME = 300
+MIN_AMOUNT_INGR = 1
+MAX_AMOUNT_INGR = 32
+PAGE_SIZE = 8
 RECIPE_IMAGE_SIZE = 500, 300
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
+
+DATE_TIME_FORMAT = "%d/%m/%Y %H:%M"

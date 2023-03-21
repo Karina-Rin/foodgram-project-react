@@ -1,39 +1,79 @@
-from django.contrib import admin
+from django.contrib.admin import (ModelAdmin, TabularInline, display, register,
+                                  site)
+from django.core.handlers.wsgi import WSGIRequest
+from django.forms import ModelForm
+from django.forms.widgets import TextInput
+from django.utils.html import format_html
 from django.utils.safestring import SafeString, mark_safe
 
-from recipes.models import (Ingredient, IngredientAmount, Recipe,
-                            RecipeFavorite, ShoppingCart, Subscribe, Tag)
+from recipes.models import (AmountIngredient, Ingredient, Recipe,
+                            RecipeFavorite, ShoppingCart, Tag)
+
+site.site_header = "Администрирование приложения Foodgram"
 
 
-class IngredientRecipeInline(admin.TabularInline):
-    model = IngredientAmount
-    extra = 0
+class TagForm(ModelForm):
+    class Meta:
+        model = Tag
+        fields = "__all__"
+        widgets = {
+            "color": TextInput(attrs={"type": "color"}),
+        }
 
 
-class TagAdmin(admin.ModelAdmin):
-    list_display = ("pk", "name", "color", "slug")
-    search_fields = ("name", "color", "slug")
+class IngredientInline(TabularInline):
+    model = AmountIngredient
+    extra = 2
+
+
+@register(AmountIngredient)
+class LinksAdmin(ModelAdmin):
+    pass
+
+
+@register(Ingredient)
+class IngredientAdmin(ModelAdmin):
+    list_display = (
+        "name",
+        "measurement_unit",
+    )
+    search_fields = ("name",)
     list_filter = ("name",)
+
+    save_on_top = True
     empty_value_display = "-пусто-"
 
 
-class IngredientAdmin(admin.ModelAdmin):
-    list_display = ("pk", "name", "measurement_unit")
-    search_fields = ("name", "measurement_unit")
-    list_filter = ("name",)
-    empty_value_display = "-пусто-"
+@register(Recipe)
+class RecipeAdmin(ModelAdmin):
+    list_display = (
+        "name",
+        "author",
+        "get_image",
+        "count_favorites",
+    )
+    fields = (
+        (
+            "name",
+            "cooking_time",
+        ),
+        (
+            "author",
+            "tags",
+        ),
+        ("text",),
+        ("image",),
+    )
+    raw_id_fields = ("author",)
+    search_fields = (
+        "name",
+        "author__username",
+        "tags__name",
+    )
+    list_filter = ("name", "author__username", "tags__name")
 
-
-class IngredientAmountInline(admin.TabularInline):
-    model = IngredientAmount
-
-
-class RecipeAdmin(admin.ModelAdmin):
-    list_display = ("name", "author", "count_favorites", "image")
-    search_fields = ("username", "email", "first_name", "last_name")
-    list_filter = ("author", "name", "tags")
-    exclude = ("ingredients",)
-    inlines = (IngredientAmountInline,)
+    inlines = (IngredientInline,)
+    save_on_top = True
     empty_value_display = "-пусто-"
 
     def get_image(self, obj: Recipe) -> SafeString:
@@ -47,32 +87,54 @@ class RecipeAdmin(admin.ModelAdmin):
     count_favorites.short_description = "В избранном"
 
 
-class RecipeFavoriteAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "recipe")
-    search_fields = ("user", "recipe")
+@register(Tag)
+class TagAdmin(ModelAdmin):
+    form = TagForm
+    list_display = (
+        "name",
+        "slug",
+        "color_code",
+    )
+    search_fields = ("name", "color")
 
-
-class IngredientAmountAdmin(admin.ModelAdmin):
-    list_display = ("id", "recipe", "ingredient", "amount")
-    search_fields = ("recipe", "ingredient")
-
-
-class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "recipe")
-    search_fields = ("user", "recipe")
-    list_filter = ("user", "recipe")
+    save_on_top = True
     empty_value_display = "-пусто-"
 
+    @display(description="Colored")
+    def color_code(self, obj: Tag):
+        return format_html(
+            '<span style="color: #{};">{}</span>', obj.color[1:], obj.color
+        )
 
-class SubscribeAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "author")
-    search_fields = ("user__username", "author__username")
+    color_code.short_description = "HEX-код цвета тэга"
 
 
-admin.site.register(Tag, TagAdmin)
-admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(IngredientAmount, IngredientAmountAdmin)
-admin.site.register(RecipeFavorite, RecipeFavoriteAdmin)
-admin.site.register(ShoppingCart, ShoppingCartAdmin)
-admin.site.register(Subscribe, SubscribeAdmin)
+@register(RecipeFavorite)
+class RecipeFavoriteAdmin(ModelAdmin):
+    list_display = ("user", "recipe", "date_added")
+    search_fields = ("user__username", "recipe__name")
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
+@register(ShoppingCart)
+class ShoppingCartdAdmin(ModelAdmin):
+    list_display = ("user", "recipe", "date_added")
+    search_fields = ("user__username", "recipe__name")
+
+    def has_change_permission(
+        self, request: WSGIRequest, obj: ShoppingCart or None = None
+    ) -> bool:
+        return False
+
+    def has_delete_permission(
+        self, request: WSGIRequest, obj: ShoppingCart or None = None
+    ) -> bool:
+        return False
