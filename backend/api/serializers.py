@@ -2,7 +2,6 @@ from collections import OrderedDict
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator, validate_email
 from django.db.models import F, QuerySet
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
