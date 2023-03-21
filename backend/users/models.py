@@ -3,7 +3,6 @@ import unicodedata
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import (CASCADE, BooleanField, CharField,
                               CheckConstraint, DateTimeField, EmailField, F,
                               ForeignKey, Model, Q, UniqueConstraint)
@@ -24,13 +23,6 @@ class User(AbstractUser):
         unique=True,
         db_index=True,
         help_text=(f"Максимум {max_username_length} символов."),
-        validators=(
-            MinLengthValidator(
-                min_len=max_username_length,
-                field="username",
-            ),
-            RegexValidator(field="username"),
-        ),
     )
     password = CharField(
         verbose_name=_("Пароль"),
@@ -48,30 +40,17 @@ class User(AbstractUser):
         verbose_name="Имя",
         max_length=max_username_length,
         help_text=(f"Максимум {max_username_length} символов."),
-        validators=(
-            RegexValidator(
-                first_regex="[^а-яёА-ЯЁ -]+",
-                second_regex="[^a-zA-Z -]+",
-                field="Имя",
-            ),
-        ),
     )
     last_name = CharField(
         verbose_name="Фамилия",
         max_length=max_username_length,
         help_text=(f"Максимум {max_username_length} символов."),
-        validators=(
-            RegexValidator(
-                first_regex="[^а-яёА-ЯЁ -]+",
-                second_regex="[^a-zA-Z -]+",
-                field="Фамилия",
-            ),
-        ),
     )
     active = BooleanField(
         verbose_name="Активирован",
         default=True,
     )
+    USERNAME_FIELD = "username"
 
     class Meta:
         verbose_name = "Пользователь"
