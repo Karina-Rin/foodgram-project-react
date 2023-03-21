@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import (MaxValueValidator, MinLengthValidator,
-                                    MinValueValidator)
+                                    MinValueValidator, RegexValidator)
 from django.db.models import (CASCADE, PROTECT, SET_NULL, CharField,
                               CheckConstraint, DateTimeField, ForeignKey,
                               ImageField, ManyToManyField, Model,
@@ -9,8 +9,6 @@ from django.db.models import (CASCADE, PROTECT, SET_NULL, CharField,
                               UniqueConstraint)
 from django.db.models.functions import Length
 from PIL import Image
-
-from recipes.validators import LanguageValidator, hex_color_validator
 
 max_legth = settings.MAX_LEGTH
 min_cook_time = settings.MIN_COOK_TIME
@@ -30,7 +28,7 @@ class Tag(Model):
         verbose_name="Название",
         max_length=max_legth,
         help_text="Введите название тэга",
-        validators=(LanguageValidator(field="Название тэга"),),
+        validators=(RegexValidator(field="Название тэга"),),
         unique=True,
     )
     color = CharField(
@@ -61,7 +59,6 @@ class Tag(Model):
     def clean_fields(self, *args, **kwargs) -> None:
         self.name = self.name.strip().lower()
         self.slug = self.slug.strip().lower()
-        self.color = hex_color_validator(self.color)
         super().clean_fields(*args, **kwargs)
 
 

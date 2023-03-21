@@ -2,13 +2,12 @@ from collections import OrderedDict
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator, validate_email
 from django.db.models import F, QuerySet
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
-from recipes.validators import (ingredients_exist_validator,
-                                tags_exist_validator)
 
 User = get_user_model()
 
@@ -159,8 +158,19 @@ class RecipeSerializer(ModelSerializer):
         if not tags_ids or not ingredients:
             raise ValidationError("Недостаточно данных.")
 
-        tags_exist_validator(tags_ids, Tag)
-        ingredients = ingredients_exist_validator(ingredients, Ingredient)
+        for tag_id in tags_ids:
+            try:
+                Tag.objects.get(id=tag_id)
+            except Tag.DoesNotExist:
+                raise ValidationError("Недопустимый идентификатор тэга.")
+
+        for ingredient in ingredients:
+            try:
+                Ingredient.objects.get(id=ingredient["id"])
+            except Ingredient.DoesNotExist:
+                raise ValidationError(
+                    "Недопустимый идентификатор ингредиента."
+                )
 
         data.update(
             {

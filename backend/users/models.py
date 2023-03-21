@@ -3,13 +3,12 @@ import unicodedata
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import (CASCADE, BooleanField, CharField,
                               CheckConstraint, DateTimeField, EmailField, F,
                               ForeignKey, Model, Q, UniqueConstraint)
 from django.db.models.functions import Length
 from django.utils.translation import gettext_lazy as _
-
-from recipes.validators import LanguageValidator, MinLenValidator
 
 CharField.register_lookup(Length)
 
@@ -26,11 +25,11 @@ class User(AbstractUser):
         db_index=True,
         help_text=(f"Максимум {max_username_length} символов."),
         validators=(
-            MinLenValidator(
+            MinLengthValidator(
                 min_len=max_username_length,
                 field="username",
             ),
-            LanguageValidator(field="username"),
+            RegexValidator(field="username"),
         ),
     )
     password = CharField(
@@ -50,7 +49,7 @@ class User(AbstractUser):
         max_length=max_username_length,
         help_text=(f"Максимум {max_username_length} символов."),
         validators=(
-            LanguageValidator(
+            RegexValidator(
                 first_regex="[^а-яёА-ЯЁ -]+",
                 second_regex="[^a-zA-Z -]+",
                 field="Имя",
@@ -62,7 +61,7 @@ class User(AbstractUser):
         max_length=max_username_length,
         help_text=(f"Максимум {max_username_length} символов."),
         validators=(
-            LanguageValidator(
+            RegexValidator(
                 first_regex="[^а-яёА-ЯЁ -]+",
                 second_regex="[^a-zA-Z -]+",
                 field="Фамилия",
