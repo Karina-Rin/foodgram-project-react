@@ -6,10 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models import (CASCADE, BooleanField, CharField,
                               CheckConstraint, DateTimeField, EmailField, F,
                               ForeignKey, Model, Q, UniqueConstraint)
-from django.db.models.functions import Length
 from django.utils.translation import gettext_lazy as _
-
-CharField.register_lookup(Length)
 
 max_username_length = settings.MAX_USERNAME_LENGTH
 max_password_length = settings.MAX_PASSWORD_LENGTH
