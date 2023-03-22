@@ -11,8 +11,6 @@ max_username_length = settings.MAX_USERNAME_LENGTH
 max_password_length = settings.MAX_PASSWORD_LENGTH
 max_email_length = settings.MAX_EMAIL_LENGTH
 
-from django.db.models.functions import Length
-
 
 class User(AbstractUser):
     username = models.CharField(
