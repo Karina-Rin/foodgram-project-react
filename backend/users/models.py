@@ -89,12 +89,9 @@ class User(AbstractUser):
         if not isinstance(email, str) or not re.match(
             r"[^@]+@[^@]+\.[^@]+", email
         ):
-            raise ValueError(
-                f"{email} это недопустимый адрес электронной почты"
-            )
+            raise ValueError(f"{email} is not a valid email address")
         email_name, domain_part = email.strip().rsplit("@", 1)
-        email = email_name.lower() + "@" + domain_part.lower()
-        return email
+        return email_name.lower() + "@" + domain_part.lower()
 
     @classmethod
     def normalize_username(cls, username: str) -> str:

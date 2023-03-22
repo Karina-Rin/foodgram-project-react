@@ -47,14 +47,17 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
     )
     def subscribe(self, request: WSGIRequest, id: int or str) -> Response:
         user = get_object_or_404(User, id=id)
+
         if request.method == "GET":
             subscriptions = request.user.subscriptions.filter(author=user)
             serializer = SubscribeSerializer(subscriptions, many=True)
             return Response(serializer.data)
-        elif request.method == "POST":
+
+        if request.method == "POST":
             request.user.subscriptions.create(author=user)
             return Response(status=HTTP_201_CREATED)
-        elif request.method == "DELETE":
+
+        if request.method == "DELETE":
             request.user.subscriptions.filter(author=user).delete()
             return Response(status=HTTP_204_NO_CONTENT)
 
@@ -97,8 +100,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
                 [ing for ing in cont_queryset if ing not in ingridients_set]
             )
             return start_queryset
-        else:
-            return self.queryset
+        return self.queryset
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -119,11 +121,14 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         tags: list = self.request.query_params.getlist("tags")
         if tags:
             queryset = queryset.filter(tags__slug__in=tags).distinct()
+
         author: str = self.request.query_params.get("author")
         if author:
             queryset = queryset.filter(author=author)
+
         if self.request.user.is_anonymous:
             return queryset
+
         is_in_shopping_cart: str = self.request.query_params.get(
             is_in_shopping_cart
         )
@@ -135,8 +140,9 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         is_favorit: str = self.request.query_params.get("is_favorited")
         if is_favorit in ["1", "true"]:
             queryset = queryset.filter(in_favorites__user=self.request.user)
-        if is_favorit in ["0", "false"]:
+        elif is_favorit in ["0", "false"]:
             queryset = queryset.exclude(in_favorites__user=self.request.user)
+
         return queryset
 
     @action(

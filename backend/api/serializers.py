@@ -46,14 +46,13 @@ class UserSerializer(ModelSerializer):
         return user.subscriptions.filter(author=obj).exists()
 
     def create(self, validated_data):
-        user = User.objects.create_user(
+        return User.objects.create_user(
             email=validated_data["email"],
             username=validated_data["username"],
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
             password=validated_data["password"],
         )
-        return user
 
 
 class SubscribeSerializer(UserSerializer):
@@ -129,10 +128,9 @@ class RecipeSerializer(ModelSerializer):
         )
 
     def get_ingredients(self, recipe: Recipe) -> QuerySet[dict]:
-        ingredients = recipe.ingredients.values(
+        return recipe.ingredients.values(
             "id", "name", "measurement_unit", amount=F("recipe__amount")
         )
-        return ingredients
 
     def get_is_favorited(self, recipe: Recipe) -> bool:
         user = self.context.get("view").request.user
