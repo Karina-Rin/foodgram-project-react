@@ -32,7 +32,6 @@ class UserSerializer(ModelSerializer):
             "last_name",
             "is_subscribed",
             "recipes",
-            "recipes_count",
         )
         extra_kwargs = {"password": {"write_only": True}}
         read_only_fields = ("is_subscribed",)
@@ -57,7 +56,6 @@ class UserSerializer(ModelSerializer):
 
 class SubscribeSerializer(UserSerializer):
     recipes = ShortRecipeSerializer(many=True, read_only=True)
-    recipes_count = SerializerMethodField()
 
     class Meta:
         model = User
@@ -69,15 +67,11 @@ class SubscribeSerializer(UserSerializer):
             "last_name",
             "is_subscribed",
             "recipes",
-            "recipes_count",
         )
         read_only_fields = ("__all__",)
 
     def get_is_subscribed(*args) -> bool:
         return True
-
-    def get_recipes_count(self, obj: User) -> int:
-        return obj.recipes.count()
 
 
 class TagSerializer(ModelSerializer):
