@@ -47,19 +47,17 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
     )
     def subscribe(self, request: WSGIRequest, id: int or str) -> Response:
         user = get_object_or_404(User, id=id)
-
         if request.method == "GET":
             subscriptions = request.user.subscriptions.filter(author=user)
             serializer = SubscribeSerializer(subscriptions, many=True)
             return Response(serializer.data)
-
         if request.method == "POST":
             request.user.subscriptions.create(author=user)
             return Response(status=HTTP_201_CREATED)
-
         if request.method == "DELETE":
             request.user.subscriptions.filter(author=user).delete()
             return Response(status=HTTP_204_NO_CONTENT)
+        return Response()
 
     @action(methods=("get",), detail=False)
     def subscriptions(self, request: WSGIRequest) -> Response:
@@ -117,31 +115,33 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     add_serializer = ShortRecipeSerializer
 
     def get_queryset(self) -> QuerySet[Recipe]:
-        queryset = self.queryset
-        tags: list = self.request.query_params.getlist("tags")
+        queryset = self.queryset.filter()
+        tags = self.request.query_params.getlist("tags")
         if tags:
             queryset = queryset.filter(tags__slug__in=tags).distinct()
 
-        author: str = self.request.query_params.get("author")
+        author = self.request.query_params.get("author")
         if author:
             queryset = queryset.filter(author=author)
 
-        if self.request.user.is_anonymous:
-            return queryset
+        if self.request.user.is_authenticated:
+            is_in_shopping_cart = self.request.query_params.get(
+                "is_in_shopping_cart"
+            )
+            if is_in_shopping_cart in ["1", "true"]:
+                queryset = queryset.filter(in_carts__user=self.request.user)
+            elif is_in_shopping_cart in ["0", "false"]:
+                queryset = queryset.exclude(in_carts__user=self.request.user)
 
-        is_in_shopping_cart: str = self.request.query_params.get(
-            is_in_shopping_cart
-        )
-        if is_in_shopping_cart in ["1", "true"]:
-            queryset = queryset.filter(in_carts__user=self.request.user)
-        elif is_in_shopping_cart in ["0", "false"]:
-            queryset = queryset.exclude(in_carts__user=self.request.user)
-
-        is_favorit: str = self.request.query_params.get("is_favorited")
-        if is_favorit in ["1", "true"]:
-            queryset = queryset.filter(in_favorites__user=self.request.user)
-        elif is_favorit in ["0", "false"]:
-            queryset = queryset.exclude(in_favorites__user=self.request.user)
+            is_favorited = self.request.query_params.get("is_favorited")
+            if is_favorited in ["1", "true"]:
+                queryset = queryset.filter(
+                    in_favorites__user=self.request.user
+                )
+            elif is_favorited in ["0", "false"]:
+                queryset = queryset.exclude(
+                    in_favorites__user=self.request.user
+                )
 
         return queryset
 

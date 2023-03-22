@@ -32,3 +32,5 @@ class AddDelViewMixin:
                 m2m_object.delete()
                 return Response(status=HTTP_204_NO_CONTENT)
             return Response(status=HTTP_400_BAD_REQUEST)
+
+        return Response(status=HTTP_400_BAD_REQUEST)
