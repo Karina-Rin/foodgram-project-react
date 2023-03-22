@@ -1,4 +1,3 @@
-from string import hexdigits
 from typing import TYPE_CHECKING, List, Optional
 
 from django.core.exceptions import ValidationError
