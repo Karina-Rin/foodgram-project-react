@@ -117,25 +117,26 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     def get_queryset(self) -> QuerySet[Recipe]:
         tags = self.request.query_params.getlist("tags")
         author = self.request.query_params.get("author")
-        queryset = (
-            self.queryset.filter(tags__slug__in=tags).distinct()
-            if tags
-            else self.queryset
-        )
-        queryset = queryset.filter(author=author) if author else queryset
-        if self.request.user.is_authenticated:
-            is_in_shopping_cart = self.request.query_params.get(
-                "is_in_shopping_cart"
-            )
-        if is_in_shopping_cart in ["1", "true"]:
-            queryset = queryset.filter(in_carts__user=self.request.user)
-        elif is_in_shopping_cart in ["0", "false"]:
-            queryset = queryset.exclude(in_carts__user=self.request.user)
+        in_shopping_cart = self.request.query_params.get("is_in_shopping_cart")
         is_favorited = self.request.query_params.get("is_favorited")
-        if is_favorited in ["1", "true"]:
-            queryset = queryset.filter(in_favorites__user=self.request.user)
-        elif is_favorited in ["0", "false"]:
-            queryset = queryset.exclude(in_favorites__user=self.request.user)
+
+        queryset = self.queryset.filter(Q(tags__slug__in=tags) | Q(tags=None))
+        queryset = queryset.filter(author=author) if author else queryset
+        queryset = (
+            queryset.filter(in_carts__user=self.request.user)
+            if (in_shopping_cart == "1" and self.request.user.is_authenticated)
+            else queryset.exclude(in_carts__user=self.request.user)
+            if (in_shopping_cart == "0" and self.request.user.is_authenticated)
+            else queryset
+        )
+        queryset = (
+            queryset.filter(in_favorites__user=self.request.user)
+            if (is_favorited == "1" and self.request.user.is_authenticated)
+            else queryset.exclude(in_favorites__user=self.request.user)
+            if (is_favorited == "0" and self.request.user.is_authenticated)
+            else queryset
+        )
+
         return queryset
 
     @action(
