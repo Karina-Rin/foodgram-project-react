@@ -7,6 +7,7 @@ from django.db.models import CASCADE, PROTECT, SET_NULL, DateTimeField
 from PIL import Image
 
 max_legth = settings.MAX_LEGTH
+max_len_recipes = settings.MAX_LEN_RECIPES
 min_cook_time = settings.MIN_COOK_TIME
 max_cook_time = settings.MAX_COOK_TIME
 recipe_umage_size = settings.RECIPE_IMAGE_SIZE
@@ -117,7 +118,7 @@ class Recipe(models.Model):
     text = models.TextField(
         verbose_name="Описание рецепта",
         help_text="Введите описание рецепта",
-        max_length=max_legth,
+        max_length=max_len_recipes,
         db_index=True,
     )
     cooking_time = models.PositiveSmallIntegerField(
