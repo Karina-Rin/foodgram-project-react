@@ -31,7 +31,7 @@ class UserSerializer(ModelSerializer):
             "first_name",
             "last_name",
             "is_subscribed",
-            "recipes",
+            "password",
         )
         extra_kwargs = {"password": {"write_only": True}}
         read_only_fields = ("is_subscribed",)
@@ -44,14 +44,16 @@ class UserSerializer(ModelSerializer):
 
         return user.subscriptions.filter(author=obj).exists()
 
-    def create(self, validated_data):
-        return User.objects.create_user(
+    def create(self, validated_data: dict) -> User:
+        user = User(
             email=validated_data["email"],
             username=validated_data["username"],
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
-            password=validated_data["password"],
         )
+        user.set_password(validated_data["password"])
+        user.save()
+        return user
 
 
 class SubscribeSerializer(UserSerializer):

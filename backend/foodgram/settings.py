@@ -107,6 +107,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/admin")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
+ROOT_URLCONF = "foodgram.urls"
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
@@ -119,17 +121,17 @@ REST_FRAMEWORK = {
 DJOSER = {
     "LOGIN_FIELD": "email",
     "HIDE_USERS": False,
-    "SERIALIZERS": {
-        "user": "api.serializers.UserSerializer",
-        "user_list": "api.serializers.UserSerializer",
-        "current_user": "api.serializers.UserSerializer",
-        "user_create": "api.serializers.UserSerializer",
-    },
     "PERMISSIONS": {
         "resipe": ("api.permissions.AuthorStaffOrReadOnly,",),
         "recipe_list": ("api.permissions.AuthorStaffOrReadOnly",),
         "user": ("api.permissions.OwnerUserOrReadOnly",),
         "user_list": ("api.permissions.OwnerUserOrReadOnly",),
+    },
+    "SERIALIZERS": {
+        "user": "api.serializers.UserSerializer",
+        "user_list": "api.serializers.UserSerializer",
+        "current_user": "api.serializers.UserSerializer",
+        "user_create": "api.serializers.UserSerializer",
     },
 }
 
