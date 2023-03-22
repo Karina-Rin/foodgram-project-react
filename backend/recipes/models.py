@@ -1,14 +1,13 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from django.core.validators import (MaxValueValidator, MinLengthValidator,
-                                    MinValueValidator)
+from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import (CASCADE, PROTECT, SET_NULL, CheckConstraint,
                               DateTimeField, Q, UniqueConstraint)
 from PIL import Image
 
-from api.validators import LanguageValidator, hex_color_validator
+from api.validators import hex_color_validator
 
 max_legth = settings.MAX_LEGTH
 min_cook_time = settings.MIN_COOK_TIME
@@ -26,7 +25,6 @@ class Tag(models.Model):
         max_length=max_legth,
         help_text="Введите название тэга",
         unique=True,
-        validators=(LanguageValidator(field="Название тэга"),),
     )
     color = models.CharField(
         verbose_name="HEX-код",
@@ -144,16 +142,6 @@ class Recipe(models.Model):
         verbose_name="Время приготовления",
         help_text="Введите время приготовления",
         default=0,
-        validators=(
-            MinValueValidator(
-                min_cook_time,
-                "Блюдо не требует готовки.",
-            ),
-            MaxValueValidator(
-                max_cook_time,
-                "Превышено максимальное время приготовления.",
-            ),
-        ),
     )
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации",
@@ -213,16 +201,6 @@ class AmountIngredient(models.Model):
         verbose_name="Количество",
         help_text="Введите количество ингредиентов",
         default=0,
-        validators=(
-            MinValueValidator(
-                min_amount_imgr,
-                "В рецепте должен быть минимум 1 ингредиент",
-            ),
-            MaxValueValidator(
-                max_amount_imgr,
-                "Выбрано слишком много ингредиентов",
-            ),
-        ),
     )
 
     class Meta:

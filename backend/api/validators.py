@@ -1,4 +1,3 @@
-import re
 from string import hexdigits
 from typing import TYPE_CHECKING, List, Optional
 
@@ -7,17 +6,6 @@ from django.utils.deconstruct import deconstructible
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient, Tag
-
-
-@deconstructible
-class LanguageValidator:
-    regex = re.compile(r"^[а-яёА-ЯЁ]+$|^[a-zA-Z]+$", re.IGNORECASE)
-    field = "Переданное значение"
-    message = f"{field} на разных языках либо содержит не только буквы."
-
-    def __call__(self, value: str) -> None:
-        if not self.regex.fullmatch(value):
-            raise ValidationError(self.message)
 
 
 @deconstructible

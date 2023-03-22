@@ -7,11 +7,11 @@ from django.db import models
 from django.db.models import CASCADE, CheckConstraint, F, Q, UniqueConstraint
 from django.utils.translation import gettext_lazy as _
 
-from api.validators import LanguageValidator, MinLenValidator
-
 max_username_length = settings.MAX_USERNAME_LENGTH
 max_password_length = settings.MAX_PASSWORD_LENGTH
 max_email_length = settings.MAX_EMAIL_LENGTH
+
+from django.db.models.functions import Length
 
 
 class User(AbstractUser):
@@ -20,13 +20,6 @@ class User(AbstractUser):
         max_length=max_username_length,
         unique=True,
         help_text=(f"Максимум {max_username_length} символов."),
-        validators=(
-            MinLenValidator(
-                min_len=max_username_length,
-                field="username",
-            ),
-            LanguageValidator(field="username"),
-        ),
     )
     password = models.CharField(
         verbose_name=_("Пароль"),
@@ -44,25 +37,11 @@ class User(AbstractUser):
         verbose_name="Имя",
         max_length=max_username_length,
         help_text=(f"Максимум {max_username_length} символов."),
-        validators=(
-            LanguageValidator(
-                first_regex="[^а-яёА-ЯЁ -]+",
-                second_regex="[^a-zA-Z -]+",
-                field="Имя",
-            ),
-        ),
     )
     last_name = models.CharField(
         verbose_name="Фамилия",
         max_length=max_username_length,
         help_text=(f"Максимум {max_username_length} символов."),
-        validators=(
-            LanguageValidator(
-                first_regex="[^а-яёА-ЯЁ -]+",
-                second_regex="[^a-zA-Z -]+",
-                field="Фамилия",
-            ),
-        ),
     )
     active = models.BooleanField(
         verbose_name="Активирован",
