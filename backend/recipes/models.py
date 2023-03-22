@@ -7,8 +7,6 @@ from django.db.models import (CASCADE, PROTECT, SET_NULL, CheckConstraint,
                               DateTimeField, Q, UniqueConstraint)
 from PIL import Image
 
-from api.validators import hex_color_validator
-
 max_legth = settings.MAX_LEGTH
 min_cook_time = settings.MIN_COOK_TIME
 max_cook_time = settings.MAX_COOK_TIME
@@ -54,7 +52,6 @@ class Tag(models.Model):
     def clean_fields(self, *args, **kwargs) -> None:
         self.name = self.name.strip().lower()
         self.slug = self.slug.strip().lower()
-        self.color = hex_color_validator(self.color)
         super().clean_fields(*args, **kwargs)
 
 

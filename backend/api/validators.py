@@ -43,19 +43,6 @@ class MinLenValidator:
             raise ValueError(self.message % (self.field, self.min_len))
 
 
-def hex_color_validator(color: str) -> str:
-    color = color.strip(" #")
-    if len(color) not in (3, 6):
-        raise ValidationError(
-            f"HEX-код {color} неправильной длины ({len(color)})."
-        )
-    if not set(color).issubset(hexdigits):
-        raise ValidationError(f"{color} не шестнадцатиричное.")
-    if len(color) == 3:
-        return f"#{color[0] * 2}{color[1] * 2}{color[2] * 2}".upper()
-    return "#" + color.upper()
-
-
 def tags_exist_validator(tags_ids: List[int or str], tag: "Tag") -> None:
     exists_tags = Tag.objects.filter(id__in=tags_ids)
 
