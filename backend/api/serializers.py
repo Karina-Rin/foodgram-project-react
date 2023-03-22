@@ -1,12 +1,12 @@
 from collections import OrderedDict
-from typing import Dict, List
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.db.models import F
+from django.db.models import F, QuerySet
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
+from api.validators import ingredients_exist_validator, tags_exist_validator
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
 
 User = get_user_model()
@@ -31,7 +31,8 @@ class UserSerializer(ModelSerializer):
             "first_name",
             "last_name",
             "is_subscribed",
-            "password",
+            "recipes",
+            "recipes_count",
         )
         extra_kwargs = {"password": {"write_only": True}}
         read_only_fields = ("is_subscribed",)
@@ -52,7 +53,6 @@ class UserSerializer(ModelSerializer):
             last_name=validated_data["last_name"],
             password=validated_data["password"],
         )
-        user.save()
         return user
 
 
@@ -128,27 +128,23 @@ class RecipeSerializer(ModelSerializer):
             "is_shopping_cart",
         )
 
-    def get_ingredients(self, recipe: Recipe) -> List[Dict]:
+    def get_ingredients(self, recipe: Recipe) -> QuerySet[dict]:
         ingredients = recipe.ingredients.values(
             "id", "name", "measurement_unit", amount=F("recipe__amount")
         )
-        return list(ingredients)
+        return ingredients
 
     def get_is_favorited(self, recipe: Recipe) -> bool:
         user = self.context.get("view").request.user
-
         if user.is_anonymous:
             return False
-
         return user.favorites.filter(recipe=recipe).exists()
 
     def get_is_in_shopping_cart(self, recipe: Recipe) -> bool:
         user = self.context.get("view").request.user
-
         if user.is_anonymous:
             return False
-
-        return user.carts.filter(recipe=recipe).exists()
+        return user.shopping_carts.filter(recipe=recipe).exists()
 
     def validate(self, data: OrderedDict) -> OrderedDict:
         tags_ids: list[int] = self.initial_data.get("tags")
@@ -157,19 +153,8 @@ class RecipeSerializer(ModelSerializer):
         if not tags_ids or not ingredients:
             raise ValidationError("Недостаточно данных.")
 
-        for tag_id in tags_ids:
-            try:
-                Tag.objects.get(id=tag_id)
-            except Tag.DoesNotExist:
-                raise ValidationError("Недопустимый идентификатор тэга.")
-
-        for ingredient in ingredients:
-            try:
-                Ingredient.objects.get(id=ingredient["id"])
-            except Ingredient.DoesNotExist:
-                raise ValidationError(
-                    "Недопустимый идентификатор ингредиента."
-                )
+        tags_exist_validator(tags_ids, Tag)
+        ingredients = ingredients_exist_validator(ingredients, Ingredient)
 
         data.update(
             {
@@ -190,9 +175,9 @@ class RecipeSerializer(ModelSerializer):
                 amount=ingredient["amount"],
             )
 
-    def create(self, validated_data: dict) -> Recipe:
-        tags: list[int] = validated_data.pop("tags")
-        ingredients: list[dict] = validated_data.pop("ingredients")
+    def update(self, recipe: Recipe, validated_data: dict):
+        tags = validated_data.pop("tags")
+        ingredients = validated_data.pop("ingredients")
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self.recipe_amount_ingredients_set(recipe, ingredients)

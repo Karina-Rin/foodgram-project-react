@@ -1,7 +1,9 @@
-from django.contrib.admin import ModelAdmin, TabularInline, register, site
+from django.contrib.admin import (ModelAdmin, TabularInline, display, register,
+                                  site)
 from django.core.handlers.wsgi import WSGIRequest
 from django.forms import ModelForm
 from django.forms.widgets import TextInput
+from django.utils.html import format_html
 from django.utils.safestring import SafeString, mark_safe
 
 from recipes.models import (AmountIngredient, Ingredient, Recipe,
@@ -91,12 +93,20 @@ class TagAdmin(ModelAdmin):
     list_display = (
         "name",
         "slug",
-        "color",
+        "color_code",
     )
     search_fields = ("name", "color")
 
     save_on_top = True
     empty_value_display = "-пусто-"
+
+    @display(description="Colored")
+    def color_code(self, obj: Tag):
+        return format_html(
+            '<span style="color: #{};">{}</span>', obj.color[1:], obj.color
+        )
+
+    color_code.short_description = "HEX-код цвета тэга"
 
 
 @register(RecipeFavorite)

@@ -2,11 +2,12 @@ import re
 import unicodedata
 
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser
-from django.db.models import (CASCADE, BooleanField, CharField,
-                              CheckConstraint, DateTimeField, EmailField, F,
-                              ForeignKey, Model, Q, UniqueConstraint)
+from django.contrib.auth.models import AbstractUser, User
+from django.db import models
+from django.db.models import CASCADE, CheckConstraint, F, Q, UniqueConstraint
 from django.utils.translation import gettext_lazy as _
+
+from api.validators import LanguageValidator, MinLenValidator
 
 max_username_length = settings.MAX_USERNAME_LENGTH
 max_password_length = settings.MAX_PASSWORD_LENGTH
@@ -14,39 +15,56 @@ max_email_length = settings.MAX_EMAIL_LENGTH
 
 
 class User(AbstractUser):
-    username = CharField(
+    username = models.CharField(
         verbose_name="Логин",
         max_length=max_username_length,
         unique=True,
-        db_index=True,
         help_text=(f"Максимум {max_username_length} символов."),
+        validators=(
+            MinLenValidator(
+                min_len=max_username_length,
+                field="username",
+            ),
+            LanguageValidator(field="username"),
+        ),
     )
-    password = CharField(
+    password = models.CharField(
         verbose_name=_("Пароль"),
         max_length=max_password_length,
-        db_index=True,
         help_text=(f"Максимум {max_password_length} символов."),
     )
-    email = EmailField(
+    email = models.EmailField(
         verbose_name="Адрес электронной почты",
         max_length=max_email_length,
         unique=True,
         db_index=True,
         help_text=(f"Максимум {max_email_length} символов."),
     )
-    first_name = CharField(
+    first_name = models.CharField(
         verbose_name="Имя",
         max_length=max_username_length,
-        db_index=True,
         help_text=(f"Максимум {max_username_length} символов."),
+        validators=(
+            LanguageValidator(
+                first_regex="[^а-яёА-ЯЁ -]+",
+                second_regex="[^a-zA-Z -]+",
+                field="Имя",
+            ),
+        ),
     )
-    last_name = CharField(
+    last_name = models.CharField(
         verbose_name="Фамилия",
         max_length=max_username_length,
-        db_index=True,
         help_text=(f"Максимум {max_username_length} символов."),
+        validators=(
+            LanguageValidator(
+                first_regex="[^а-яёА-ЯЁ -]+",
+                second_regex="[^a-zA-Z -]+",
+                field="Фамилия",
+            ),
+        ),
     )
-    active = BooleanField(
+    active = models.BooleanField(
         verbose_name="Активирован",
         default=True,
     )
@@ -75,7 +93,8 @@ class User(AbstractUser):
                 f"{email} это недопустимый адрес электронной почты"
             )
         email_name, domain_part = email.strip().rsplit("@", 1)
-        return email_name.lower() + "@" + domain_part
+        email = email_name.lower() + "@" + domain_part.lower()
+        return email
 
     @classmethod
     def normalize_username(cls, username: str) -> str:
@@ -93,22 +112,22 @@ class User(AbstractUser):
         super().clean()
 
 
-class Subscribe(Model):
-    author = ForeignKey(
+class Subscribe(models.Model):
+    author = models.ForeignKey(
+        User,
         verbose_name="Автор рецепта",
         related_name="subscribers",
         help_text="Выберите автора для подписки",
-        to=User,
         on_delete=CASCADE,
     )
-    user = ForeignKey(
+    user = models.ForeignKey(
+        User,
         verbose_name="Подписчики",
         related_name="subscriptions",
         help_text="Выберите пользователя для подписки",
-        to=User,
         on_delete=CASCADE,
     )
-    date_added = DateTimeField(
+    date_added = models.DateTimeField(
         verbose_name="Дата создания подписки",
         auto_now_add=True,
         editable=False,

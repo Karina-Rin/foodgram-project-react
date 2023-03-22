@@ -25,10 +25,11 @@ class AddDelViewMixin:
             if not m2m_object:
                 m2m_model.objects.create(obj=obj, user=self.request.user)
                 return Response(serializer.data, status=HTTP_201_CREATED)
-
+            else:
+                return Response(status=HTTP_400_BAD_REQUEST)
         elif self.request.method == "DELETE":
             if m2m_object:
                 m2m_object.delete()
                 return Response(status=HTTP_204_NO_CONTENT)
-
-        return Response(status=HTTP_400_BAD_REQUEST)
+            else:
+                return Response(status=HTTP_400_BAD_REQUEST)

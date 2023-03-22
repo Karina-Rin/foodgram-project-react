@@ -5,14 +5,16 @@ from urllib.parse import unquote
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models import F, Q, Sum
+from django.db.models import F, Q, QuerySet, Sum
 from django.http.response import HttpResponse
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
+from rest_framework.status import (HTTP_201_CREATED, HTTP_204_NO_CONTENT,
+                                   HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from api.mixins import AddDelViewMixin
@@ -23,11 +25,6 @@ from api.serializers import (IngredientSerializer, RecipeSerializer,
                              TagSerializer)
 from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
                             Tag)
-from users.models import Subscribe
-
-incorrect_layout = str.maketrans(
-    "qwertyuiop[]asdfghjkl;'zxcvbnm,./", "йцукенгшщзхъфывапролджэячсмитьбю."
-)
 
 date_time_format = settings.DATE_TIME_FORMAT
 
@@ -49,7 +46,17 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
         permission_classes=(IsAuthenticated,),
     )
     def subscribe(self, request: WSGIRequest, id: int or str) -> Response:
-        return self._add_del_obj(id, Subscribe, Q(author__id=id))
+        user = get_object_or_404(User, id=id)
+        if request.method == "GET":
+            subscriptions = request.user.subscriptions.filter(author=user)
+            serializer = SubscribeSerializer(subscriptions, many=True)
+            return Response(serializer.data)
+        elif request.method == "POST":
+            request.user.subscriptions.create(author=user)
+            return Response(status=HTTP_201_CREATED)
+        elif request.method == "DELETE":
+            request.user.subscriptions.filter(author=user).delete()
+            return Response(status=HTTP_204_NO_CONTENT)
 
     @action(methods=("get",), detail=False)
     def subscriptions(self, request: WSGIRequest) -> Response:
@@ -70,24 +77,28 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 
     def get_queryset(self) -> List[Ingredient]:
         name: str = self.request.query_params.get("name")
-        queryset = self.queryset
-
         if name:
-            if name[0] == "%":
-                name = unquote(name)
-            else:
-                name = name.translate(incorrect_layout)
+            name = unquote(name)
+            name = name.translate(
+                str.maketrans(
+                    "qwertyuiop[]asdfghjkl;'zxcvbnm,./",
+                    "йцукенгшщзхъфывапролджэячсмитьбю.",
+                )
+            )
             name = name.lower()
-
-            start_queryset = list(queryset.filter(name__istartswith=name))
+            start_queryset: List[Ingredient] = list(
+                self.queryset.filter(name__istartswith=name)
+            )
             ingridients_set = set(start_queryset)
-            cont_queryset = queryset.filter(name__icontains=name)
-
-            return start_queryset + [
-                ing for ing in cont_queryset if ing not in ingridients_set
-            ]
-
-        return queryset
+            cont_queryset: List[Ingredient] = list(
+                self.queryset.filter(name__icontains=name)
+            )
+            start_queryset.extend(
+                [ing for ing in cont_queryset if ing not in ingridients_set]
+            )
+            return start_queryset
+        else:
+            return self.queryset
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -103,16 +114,30 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     pagination_class = PageLimitPagination
     add_serializer = ShortRecipeSerializer
 
-    def get_queryset(self):
-        is_favorited = self.request.query_params.get("is_favorited")
-        if is_favorited is not None and int(is_favorited) == 1:
-            return Recipe.objects.filter(recipe__user=self.request.user)
-        is_in_shopping_cart = self.request.query_params.get(
-            "is_in_shopping_cart"
+    def get_queryset(self) -> QuerySet[Recipe]:
+        queryset = self.queryset
+        tags: list = self.request.query_params.getlist("tags")
+        if tags:
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
+        author: str = self.request.query_params.get("author")
+        if author:
+            queryset = queryset.filter(author=author)
+        if self.request.user.is_anonymous:
+            return queryset
+        is_in_shopping_cart: str = self.request.query_params.get(
+            is_in_shopping_cart
         )
-        if is_in_shopping_cart is not None and int(is_in_shopping_cart) == 1:
-            return Recipe.objects.filter(shopping_cart__user=self.request.user)
-        return Recipe.objects.all()
+        if is_in_shopping_cart in ["1", "true"]:
+            queryset = queryset.filter(in_carts__user=self.request.user)
+        elif is_in_shopping_cart in ["0", "false"]:
+            queryset = queryset.exclude(in_carts__user=self.request.user)
+
+        is_favorit: str = self.request.query_params.get("is_favorited")
+        if is_favorit in ["1", "true"]:
+            queryset = queryset.filter(in_favorites__user=self.request.user)
+        if is_favorit in ["0", "false"]:
+            queryset = queryset.exclude(in_favorites__user=self.request.user)
+        return queryset
 
     @action(
         methods=("GET", "POST", "DELETE"),

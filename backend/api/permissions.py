@@ -1,53 +1,50 @@
-from rest_framework.permissions import (SAFE_METHODS, BasePermission,
-                                        IsAdminUser, IsAuthenticated)
+from django.core.handlers.wsgi import WSGIRequest
+from django.db.models import Model
+from rest_framework.permissions import SAFE_METHODS, BasePermission
+from rest_framework.routers import APIRootView
 
 
-class OwnerUserOrReadOnly(BasePermission):
-    pass
+class BanPermission(BasePermission):
+    def has_permission(self, request: WSGIRequest, view: APIRootView) -> bool:
+        return bool(
+            request.method in SAFE_METHODS
+            or request.user.is_authenticated
+            and request.user.is_active
+        )
 
 
-class IsAuthorOrReadOnly(BasePermission):
-    message = "Только автору разрешено вносить изменения."
-
-    def has_object_permission(self, request, view, obj):
-        if request.method in SAFE_METHODS:
-            return True
-        return obj.author == request.user
-
-
-class IsOwnerOrReadOnly(BasePermission):
-    message = "Только владельцу разрешено вносить изменения."
-
-    def has_object_permission(self, request, view, obj):
-        if request.method in SAFE_METHODS:
-            return True
-        return obj.owner == request.user
+class AdminOrReadOnly(BanPermission):
+    def has_object_permission(
+        self, request: WSGIRequest, view: APIRootView
+    ) -> bool:
+        return (
+            request.method in SAFE_METHODS
+            or request.user.is_authenticated
+            and request.user.is_active
+            and request.user.is_staff
+        )
 
 
-class AdminOrReadOnly(BasePermission):
-    message = "Только администраторам разрешено вносить изменения."
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            return True
-        return IsAdminUser().has_permission(request, view)
-
-
-class AuthorStaffOrReadOnly(BasePermission):
-    message = "Только персоналу разрешено вносить изменения."
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            return True
-        return request.user.is_staff
+class AuthorStaffOrReadOnly(BanPermission):
+    def has_object_permission(
+        self, request: WSGIRequest, view: APIRootView, obj: Model
+    ) -> bool:
+        return (
+            request.method in SAFE_METHODS
+            or request.user.is_authenticated
+            and request.user.is_active
+            and (request.user == obj.author or request.user.is_staff)
+        )
 
 
-class IsAuthenticatedOrReadOnly(BasePermission):
-    message = (
-        "Только аутентифицированным пользователям разрешено вносить изменения."
-    )
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            return True
-        return IsAuthenticated().has_permission(request, view)
+class OwnerUserOrReadOnly(BanPermission):
+    def has_object_permission(
+        self, request: WSGIRequest, view: APIRootView, obj: Model
+    ) -> bool:
+        return (
+            request.method in SAFE_METHODS
+            or request.user.is_authenticated
+            and request.user.is_active
+            and request.user == obj.author
+            or request.user.is_staff
+        )

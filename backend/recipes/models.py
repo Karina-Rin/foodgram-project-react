@@ -1,13 +1,14 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.core.validators import (MaxValueValidator, MinLengthValidator,
                                     MinValueValidator)
-from django.db.models import (CASCADE, PROTECT, SET_NULL, CharField,
-                              CheckConstraint, DateTimeField, ForeignKey,
-                              ImageField, ManyToManyField, Model,
-                              PositiveSmallIntegerField, Q, TextField,
-                              UniqueConstraint)
+from django.db import models
+from django.db.models import (CASCADE, PROTECT, SET_NULL, CheckConstraint,
+                              DateTimeField, Q, UniqueConstraint)
 from PIL import Image
+
+from api.validators import LanguageValidator, hex_color_validator
 
 max_legth = settings.MAX_LEGTH
 min_cook_time = settings.MIN_COOK_TIME
@@ -16,19 +17,18 @@ recipe_umage_size = settings.RECIPE_IMAGE_SIZE
 min_amount_imgr = settings.MIN_AMOUNT_INGR
 max_amount_imgr = settings.MAX_AMOUNT_INGR
 
-
 User = get_user_model()
 
 
-class Tag(Model):
-    name = CharField(
+class Tag(models.Model):
+    name = models.CharField(
         verbose_name="Название",
         max_length=max_legth,
-        db_index=True,
         help_text="Введите название тэга",
         unique=True,
+        validators=(LanguageValidator(field="Название тэга"),),
     )
-    color = CharField(
+    color = models.CharField(
         verbose_name="HEX-код",
         help_text="Введите HEX-код цвета тэга",
         max_length=7,
@@ -37,7 +37,7 @@ class Tag(Model):
         null=True,
         db_index=False,
     )
-    slug = CharField(
+    slug = models.CharField(
         verbose_name="Слаг тэга",
         help_text="Введите текстовый идентификатор тэга",
         max_length=max_legth,
@@ -56,21 +56,20 @@ class Tag(Model):
     def clean_fields(self, *args, **kwargs) -> None:
         self.name = self.name.strip().lower()
         self.slug = self.slug.strip().lower()
+        self.color = hex_color_validator(self.color)
         super().clean_fields(*args, **kwargs)
 
 
-class Ingredient(Model):
-    name = TextField(
+class Ingredient(models.Model):
+    name = models.TextField(
         verbose_name="Название ингредиента",
         help_text="Введите название ингредиента",
         max_length=max_legth,
-        db_index=True,
         validators=[MinLengthValidator(1)],
     )
-    measurement_unit = TextField(
+    measurement_unit = models.TextField(
         verbose_name="Единицы измерения",
         max_length=max_legth,
-        db_index=True,
         help_text="Введите единицы измерения",
         validators=[MinLengthValidator(1)],
     )
@@ -103,45 +102,45 @@ class Ingredient(Model):
         super().clean()
 
 
-class Recipe(Model):
-    author = ForeignKey(
+class Recipe(models.Model):
+    author = models.ForeignKey(
+        User,
         verbose_name="Автор рецепта",
         related_name="recipes",
         help_text="Выберите автора рецепта",
-        to=User,
         on_delete=SET_NULL,
         null=True,
     )
-    name = CharField(
+    name = models.CharField(
         verbose_name="Название рецепта",
         help_text="Введите название рецепта",
         max_length=max_legth,
     )
-    ingredients = ManyToManyField(
+    ingredients = models.ManyToManyField(
+        Ingredient,
         verbose_name="Ингредиенты для приготовления блюда по рецепту",
         related_name="recipes",
         help_text="Выберите ингредиенты рецепта",
-        to=Ingredient,
         through="recipes.AmountIngredient",
     )
-    tags = ManyToManyField(
+    tags = models.ManyToManyField(
+        Tag,
         verbose_name="Тэг",
         related_name="recipes",
         help_text="Выберите тэг рецепта.",
-        to="Tag",
     )
-    image = ImageField(
+    image = models.ImageField(
         verbose_name="Изображение",
         help_text="Выберите изображение рецепта",
         upload_to="recipe_images/",
     )
-    text = TextField(
+    text = models.TextField(
         verbose_name="Описание рецепта",
         help_text="Введите описание рецепта",
         max_length=max_legth,
         db_index=True,
     )
-    cooking_time = PositiveSmallIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name="Время приготовления",
         help_text="Введите время приготовления",
         default=0,
@@ -156,7 +155,7 @@ class Recipe(Model):
             ),
         ),
     )
-    pub_date = DateTimeField(
+    pub_date = models.DateTimeField(
         verbose_name="Дата публикации",
         auto_now_add=True,
         editable=False,
@@ -195,22 +194,22 @@ class Recipe(Model):
         self
 
 
-class AmountIngredient(Model):
-    recipe = ForeignKey(
+class AmountIngredient(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
         verbose_name="Рецепт",
         related_name="ingredient",
         help_text="Выберите рецепт",
-        to=Recipe,
         on_delete=CASCADE,
     )
-    ingredients = ForeignKey(
+    ingredients = models.ForeignKey(
+        Ingredient,
         verbose_name="Ингредиент",
         related_name="recipe",
         help_text="Добавить ингредиенты рецепта в корзину",
-        to=Ingredient,
         on_delete=PROTECT,
     )
-    amount = PositiveSmallIntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name="Количество",
         help_text="Введите количество ингредиентов",
         default=0,
@@ -244,19 +243,19 @@ class AmountIngredient(Model):
         return f"{self.amount} {self.ingredients}"
 
 
-class RecipeFavorite(Model):
-    user = ForeignKey(
+class RecipeFavorite(models.Model):
+    user = models.ForeignKey(
+        User,
         verbose_name="Автор списка избранного",
         related_name="favorites",
         help_text="Выберите автора",
-        to=User,
         on_delete=CASCADE,
     )
-    recipe = ForeignKey(
+    recipe = models.ForeignKey(
+        Recipe,
         verbose_name="Избранный рецепт",
         related_name="in_favorites",
         help_text="Выберите рецепт",
-        to=Recipe,
         on_delete=CASCADE,
     )
     date_added = DateTimeField(
@@ -280,22 +279,22 @@ class RecipeFavorite(Model):
         return f"{self.user} -> {self.recipe}"
 
 
-class ShoppingCart(Model):
-    user = ForeignKey(
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
         verbose_name="Автор списка покупок",
         related_name="shopping_cart",
         help_text="Выберите автора",
-        to=User,
         on_delete=CASCADE,
     )
-    recipe = ForeignKey(
+    recipe = models.ForeignKey(
+        Recipe,
         verbose_name="Рецепты в списке покупок",
         related_name="in_shopping_carts",
         help_text="Выберите рецепты для добавления продуктов в корзину",
-        to=Recipe,
         on_delete=CASCADE,
     )
-    date_added = DateTimeField(
+    date_added = models.DateTimeField(
         verbose_name="Дата добавления", auto_now_add=True, editable=False
     )
 
