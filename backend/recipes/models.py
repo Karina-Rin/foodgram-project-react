@@ -3,8 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.db.models import (CASCADE, PROTECT, SET_NULL, CheckConstraint,
-                              DateTimeField, Q, UniqueConstraint)
+from django.db.models import CASCADE, PROTECT, SET_NULL, DateTimeField
 from PIL import Image
 
 max_legth = settings.MAX_LEGTH
@@ -73,20 +72,6 @@ class Ingredient(models.Model):
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
         ordering = ("name",)
-        constraints = (
-            UniqueConstraint(
-                fields=("name", "measurement_unit"),
-                name="unique_for_ingredient",
-            ),
-            CheckConstraint(
-                check=Q(name__length__gt=0),
-                name="\n%(app_label)s_%(class)s_name пусто\n",
-            ),
-            CheckConstraint(
-                check=Q(measurement_unit__length__gt=0),
-                name="\n%(app_label)s_%(class)s_measurement_unit пусто\n",
-            ),
-        )
 
     def __str__(self) -> str:
         return f"{self.name} {self.measurement_unit}"
@@ -150,16 +135,6 @@ class Recipe(models.Model):
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
         ordering = ("-pub_date",)
-        constraints = (
-            UniqueConstraint(
-                fields=("name", "author"),
-                name="unique_for_author",
-            ),
-            CheckConstraint(
-                check=Q(name__length__gt=0),
-                name="\n%(app_label)s_%(class)s_name пусто\n",
-            ),
-        )
 
     def __str__(self) -> str:
         return self.name
@@ -204,15 +179,6 @@ class AmountIngredient(models.Model):
         verbose_name = "Количество ингредиента"
         verbose_name_plural = "Количество ингредиентов"
         ordering = ("recipe",)
-        constraints = (
-            UniqueConstraint(
-                fields=(
-                    "recipe",
-                    "ingredients",
-                ),
-                name="\n%(app_label)s_%(class)s ингредиент уже добавлен\n",
-            ),
-        )
 
     def __str__(self) -> str:
         return f"{self.amount} {self.ingredients}"
@@ -240,15 +206,6 @@ class RecipeFavorite(models.Model):
     class Meta:
         verbose_name = "Избранный рецепт"
         verbose_name_plural = "Избранные рецепты"
-        constraints = (
-            UniqueConstraint(
-                fields=(
-                    "recipe",
-                    "user",
-                ),
-                name="Рецепт уже в избранном",
-            ),
-        )
 
     def __str__(self) -> str:
         return f"{self.user} -> {self.recipe}"
@@ -276,15 +233,6 @@ class ShoppingCart(models.Model):
     class Meta:
         verbose_name = "Рецепт в списке покупок"
         verbose_name_plural = "Рецепты в списке покупок"
-        constraints = (
-            UniqueConstraint(
-                fields=(
-                    "recipe",
-                    "user",
-                ),
-                name="\n%(app_label)s_%(class)s рецепт уже есть в корзине\n",
-            ),
-        )
 
     def __str__(self) -> str:
         return f"{self.user} -> {self.recipe}"

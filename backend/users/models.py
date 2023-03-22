@@ -4,7 +4,7 @@ import unicodedata
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, User
 from django.db import models
-from django.db.models import CASCADE, CheckConstraint, F, Q, UniqueConstraint
+from django.db.models import CASCADE
 from django.utils.translation import gettext_lazy as _
 
 max_username_length = settings.MAX_USERNAME_LENGTH
@@ -51,12 +51,6 @@ class User(AbstractUser):
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
         ordering = ("username",)
-        constraints = (
-            CheckConstraint(
-                check=Q(username__length__gte=max_username_length),
-                name="\nИмя пользователя слишком короткое\n",
-            ),
-        )
 
     def __str__(self) -> str:
         return f"{self.username}: {self.email}"
@@ -110,16 +104,6 @@ class Subscribe(models.Model):
     class Meta:
         verbose_name = "Подписка"
         verbose_name_plural = "Подписки"
-        constraints = (
-            UniqueConstraint(
-                fields=("author", "user"),
-                name="\nПовторная подписка\n",
-            ),
-            CheckConstraint(
-                check=~Q(author=F("user")),
-                name="\nНельзя подписаться на самого себя\n",
-            ),
-        )
 
     def __str__(self) -> str:
         return f"{self.user.username} -> {self.author.username}"
