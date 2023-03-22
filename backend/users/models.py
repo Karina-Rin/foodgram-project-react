@@ -66,10 +66,7 @@ class User(AbstractUser):
 
     @classmethod
     def normalize_username(cls, username: str) -> str:
-        if not username:
-            return ""
-        normalized = unicodedata.normalize("NFKC", username)
-        return cls.capitalize(normalized)
+        return unicodedata.normalize("NFKC", username).capitalize()
 
     def __normalize_human_names(self, name: str) -> str:
         return " ".join([word.capitalize() for word in name.split()])
