@@ -49,7 +49,7 @@ class User(AbstractUser):
 
     class Meta:
         verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
+        verbose_name_plural = "Пользователя"
         ordering = ("username",)
 
     def __str__(self) -> str:
@@ -60,7 +60,9 @@ class User(AbstractUser):
         if not isinstance(email, str) or not re.match(
             r"[^@]+@[^@]+\.[^@]+", email
         ):
-            raise ValueError(f"{email} is not a valid email address")
+            raise ValueError(
+                f"{email} это недействительный адрес электронной почты"
+            )
         email_name, domain_part = email.strip().rsplit("@", 1)
         return email_name.lower() + "@" + domain_part.lower()
 

@@ -123,9 +123,9 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         queryset = self.queryset.filter(Q(tags__slug__in=tags) | Q(tags=None))
         queryset = queryset.filter(author=author) if author else queryset
         queryset = (
-            queryset.filter(in_carts__user=self.request.user)
+            queryset.filter(in_shopping_carts__user=self.request.user)
             if (in_shopping_cart == "1" and self.request.user.is_authenticated)
-            else queryset.exclude(in_carts__user=self.request.user)
+            else queryset.exclude(in_shopping_carts__user=self.request.user)
             if (in_shopping_cart == "0" and self.request.user.is_authenticated)
             else queryset
         )

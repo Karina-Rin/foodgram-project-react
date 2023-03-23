@@ -177,8 +177,8 @@ class AmountIngredient(models.Model):
     )
 
     class Meta:
-        verbose_name = "Количество ингредиента"
-        verbose_name_plural = "Количество ингредиентов"
+        verbose_name = "ингредиент"
+        verbose_name_plural = "ингредиенты"
         ordering = ("recipe",)
 
     def __str__(self) -> str:
