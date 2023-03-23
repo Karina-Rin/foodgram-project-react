@@ -36,4 +36,3 @@ class UserAdmin(UserAdmin):
         "email",
     )
     save_on_top = True
-    empty_value_display = "-пусто-"

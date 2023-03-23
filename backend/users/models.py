@@ -28,7 +28,6 @@ class User(AbstractUser):
         verbose_name="Адрес электронной почты",
         max_length=max_email_length,
         unique=True,
-        db_index=True,
         help_text=(f"Максимум {max_email_length} символов."),
     )
     first_name = models.CharField(
@@ -45,7 +44,6 @@ class User(AbstractUser):
         verbose_name="Активирован",
         default=True,
     )
-    USERNAME_FIELD = "username"
 
     class Meta:
         verbose_name = "Пользователь"

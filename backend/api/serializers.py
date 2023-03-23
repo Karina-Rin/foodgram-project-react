@@ -3,11 +3,13 @@ from collections import OrderedDict
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.models import F, QuerySet
+from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from api.validators import ingredients_exist_validator, tags_exist_validator
-from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
+from api.amount import recipe_ingredients_set
+from api.validators import ingredients_validator, tags_exist_validator
+from recipes.models import Ingredient, Recipe, Tag
 
 User = get_user_model()
 
@@ -58,6 +60,7 @@ class UserSerializer(ModelSerializer):
 
 class SubscribeSerializer(UserSerializer):
     recipes = ShortRecipeSerializer(many=True, read_only=True)
+    recipes_count = SerializerMethodField()
 
     class Meta:
         model = User
@@ -74,6 +77,9 @@ class SubscribeSerializer(UserSerializer):
 
     def get_is_subscribed(*args) -> bool:
         return True
+
+    def get_recipes_count(self, obj: User) -> int:
+        return obj.recipes.count()
 
 
 class TagSerializer(ModelSerializer):
@@ -124,31 +130,36 @@ class RecipeSerializer(ModelSerializer):
         )
 
     def get_ingredients(self, recipe: Recipe) -> QuerySet[dict]:
-        return recipe.ingredients.values(
+        ingredients = recipe.ingredients.values(
             "id", "name", "measurement_unit", amount=F("recipe__amount")
         )
+        return ingredients
 
     def get_is_favorited(self, recipe: Recipe) -> bool:
         user = self.context.get("view").request.user
+
         if user.is_anonymous:
             return False
+
         return user.favorites.filter(recipe=recipe).exists()
 
     def get_is_in_shopping_cart(self, recipe: Recipe) -> bool:
         user = self.context.get("view").request.user
+
         if user.is_anonymous:
             return False
+
         return user.shopping_carts.filter(recipe=recipe).exists()
 
     def validate(self, data: OrderedDict) -> OrderedDict:
         tags_ids: list[int] = self.initial_data.get("tags")
-        ingredients: list[dict] = self.initial_data.get("ingredients")
+        ingredients = self.initial_data.get("ingredients")
 
         if not tags_ids or not ingredients:
             raise ValidationError("Недостаточно данных.")
 
         tags_exist_validator(tags_ids, Tag)
-        ingredients = ingredients_exist_validator(ingredients, Ingredient)
+        ingredients = ingredients_validator(ingredients, Ingredient)
 
         data.update(
             {
@@ -159,24 +170,16 @@ class RecipeSerializer(ModelSerializer):
         )
         return data
 
-    def recipe_amount_ingredients_set(
-        self, recipe: Recipe, ingredients: list
-    ) -> None:
-        for ingredient in ingredients:
-            AmountIngredient.objects.get_or_create(
-                recipe=recipe,
-                ingredient=ingredient["ingredient"],
-                amount=ingredient["amount"],
-            )
-
-    def update(self, recipe: Recipe, validated_data: dict):
-        tags = validated_data.pop("tags")
-        ingredients = validated_data.pop("ingredients")
+    @atomic
+    def create(self, validated_data: dict) -> Recipe:
+        tags: list[int] = validated_data.pop("tags")
+        ingredients: dict[int, tuple] = validated_data.pop("ingredients")
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        self.recipe_amount_ingredients_set(recipe, ingredients)
+        recipe_ingredients_set(recipe, ingredients)
         return recipe
 
+    @atomic
     def update(self, recipe: Recipe, validated_data: dict):
         tags = validated_data.pop("tags")
         ingredients = validated_data.pop("ingredients")
@@ -191,7 +194,7 @@ class RecipeSerializer(ModelSerializer):
 
         if ingredients:
             recipe.ingredients.clear()
-            self.recipe_amount_ingredients_set(recipe, ingredients)
+            recipe_ingredients_set(recipe, ingredients)
 
         recipe.save()
-        return recipe
+        return

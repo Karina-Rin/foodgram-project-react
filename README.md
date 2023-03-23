@@ -91,7 +91,7 @@ python manage.py createsuperuser
 Админ
 ```
 http://62.84.120.208/admin/
-Login: adminrin
+Login: Adminrin
 Password: 1297aRR14
 ```
 ### Адрес проекта

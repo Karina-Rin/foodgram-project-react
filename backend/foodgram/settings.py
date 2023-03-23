@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from decouple import Csv, config
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,7 +11,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "ns6(14uyb7kn3q10kkz+=y8#k!g$$+qhs)ho+6^nzy=9xoru3g"
 
-DEBUG = True
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS",
+    default="http://localhost, http://127.0.0.1",
+    cast=Csv(),
+)
+
+DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -32,9 +39,9 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "djoser",
     "django_filters",
-    "api",
-    "users",
-    "recipes",
+    "api.apps.ApiConfig",
+    "recipes.apps.RecipesConfig",
+    "users.apps.UsersConfig",
 ]
 
 MIDDLEWARE = [
@@ -80,6 +87,8 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = "users.User"
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -95,10 +104,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = "ru-ru"
+LANGUAGE_CODE = "ru"
 TIME_ZONE = "UTC"
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = "/static/admin/"
@@ -107,20 +115,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/admin")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-ROOT_URLCONF = "foodgram.urls"
-
 REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ],
-    "PAGE_SIZE": 10,
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
-    "DEFAULT_FILTER_BACKENDS": [
-        "django_filters.rest_framework.DjangoFilterBackend",
-        "rest_framework.filters.SearchFilter",
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
 }
 
@@ -141,6 +141,24 @@ DJOSER = {
     },
 }
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django.db.backends": {
+            "level": "DEBUG" if DEBUG else "ERROR",
+            "handlers": [
+                "console",
+            ],
+        },
+    },
+}
+
 MAX_LEGTH = 100
 MAX_LEN_RECIPES = 1000
 MAX_EMAIL_LENGTH = 255
@@ -148,12 +166,16 @@ MAX_USERNAME_LENGTH = 150
 MAX_PASSWORD_LENGTH = 150
 MIN_COOK_TIME = 1
 MAX_COOK_TIME = 300
-MIN_AMOUNT_INGR = 1
-MAX_AMOUNT_INGR = 32
+MIN_AMOUNT_INGREDIENTS = 1
+MAX_AMOUNT_INGREDIENTS = 32
 PAGE_SIZE = 8
 RECIPE_IMAGE_SIZE = 500, 300
+ADD_METHODS = "GET", "POST"
+DEL_METHODS = "DELETE"
+ACTION_METHODS = "GET", "POST", "DELETE"
+SYMBOL_TRUE_SEARCH = "1", "true"
+SYMBOL_FALSE_SEARCH = "0", "false"
+
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-AUTH_USER_MODEL = "users.User"
-
 DATE_TIME_FORMAT = "%d/%m/%Y %H:%M"

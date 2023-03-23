@@ -1,24 +1,14 @@
 from django.contrib.admin import (ModelAdmin, TabularInline, display, register,
                                   site)
 from django.core.handlers.wsgi import WSGIRequest
-from django.forms import ModelForm
-from django.forms.widgets import TextInput
 from django.utils.html import format_html
 from django.utils.safestring import SafeString, mark_safe
 
+from recipes.forms import TagForm
 from recipes.models import (AmountIngredient, Ingredient, Recipe,
                             RecipeFavorite, ShoppingCart, Tag)
 
 site.site_header = "Администрирование приложения Foodgram"
-
-
-class TagForm(ModelForm):
-    class Meta:
-        model = Tag
-        fields = "__all__"
-        widgets = {
-            "color": TextInput(attrs={"type": "color"}),
-        }
 
 
 class IngredientInline(TabularInline):
@@ -114,18 +104,19 @@ class RecipeFavoriteAdmin(ModelAdmin):
     list_display = ("user", "recipe", "date_added")
     search_fields = ("user__username", "recipe__name")
 
-    def has_view_permission(self, request, obj=None):
-        return request.user.is_superuser
+    def has_change_permission(
+        self, request: WSGIRequest, obj: RecipeFavorite or None = None
+    ) -> bool:
+        return False
 
-    def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
+    def has_delete_permission(
+        self, request: WSGIRequest, obj: RecipeFavorite or None = None
+    ) -> bool:
+        return False
 
 
 @register(ShoppingCart)
-class ShoppingCartdAdmin(ModelAdmin):
+class ShoppingCartAdmin(ModelAdmin):
     list_display = ("user", "recipe", "date_added")
     search_fields = ("user__username", "recipe__name")
 
