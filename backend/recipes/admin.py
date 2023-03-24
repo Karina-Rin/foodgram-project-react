@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.admin import (ModelAdmin, TabularInline, display, register,
                                   site)
 from django.core.handlers.wsgi import WSGIRequest
@@ -10,10 +11,12 @@ from recipes.models import (AmountIngredient, Ingredient, Recipe,
 
 site.site_header = "Администрирование приложения Foodgram"
 
+extra = settings.EXTRA
+
 
 class IngredientInline(TabularInline):
     model = AmountIngredient
-    extra = 2
+    extra = extra
 
 
 @register(AmountIngredient)
@@ -91,9 +94,9 @@ class TagAdmin(ModelAdmin):
     empty_value_display = "-пусто-"
 
     @display(description="Colored")
-    def color_code(self, obj: Tag):
+    def color_code(self, obj):
         return format_html(
-            '<span style="color: #{};">{}</span>', obj.color[1:], obj.color
+            '<span style="color: #FF0000;">{}</span>', obj.color
         )
 
     color_code.short_description = "HEX-код цвета тэга"

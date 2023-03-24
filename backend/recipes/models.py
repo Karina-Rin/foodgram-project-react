@@ -1,12 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import CASCADE, SET_NULL, DateTimeField, UniqueConstraint
 from PIL import Image
-
-from api.validators import OneOfTwoValidator, hex_color_validator
 
 max_legth = settings.MAX_LEGTH
 max_len_recipes = settings.MAX_LEN_RECIPES
@@ -25,7 +21,6 @@ class Tag(models.Model):
         max_length=max_legth,
         help_text="Введите название тэга",
         unique=True,
-        validators=(OneOfTwoValidator(field="Название тэга"),),
     )
     color = models.CharField(
         verbose_name="HEX-код",
@@ -54,7 +49,6 @@ class Tag(models.Model):
     def clean(self) -> None:
         self.name = self.name.strip().lower()
         self.slug = self.slug.strip().lower()
-        self.color = hex_color_validator(self.color)
         return super().clean()
 
 
@@ -132,16 +126,6 @@ class Recipe(models.Model):
         verbose_name="Время приготовления",
         help_text="Введите время приготовления",
         default=0,
-        validators=(
-            MinValueValidator(
-                min_cook_time,
-                "Ваше блюдо уже готово!",
-            ),
-            MaxValueValidator(
-                max_cook_time,
-                "Очень долго ждать.",
-            ),
-        ),
     )
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации",
@@ -193,21 +177,11 @@ class AmountIngredient(models.Model):
         verbose_name="Количество",
         help_text="Введите количество ингредиентов",
         default=0,
-        validators=(
-            MinValueValidator(
-                min_amount_imgredients,
-                "Отсутствуют ингредиенты, добавьте хотя бы 1.",
-            ),
-            MaxValueValidator(
-                max_amount_imgredients,
-                "Ингредиентов слишком много.",
-            ),
-        ),
     )
 
     class Meta:
-        verbose_name = "Ингредиент"
-        verbose_name_plural = "Количество ингредиентов"
+        verbose_name = "Ингредиент из рецепта"
+        verbose_name_plural = "Игредиенты из рецептов"
         ordering = ("recipe",)
         constraints = (
             UniqueConstraint(
