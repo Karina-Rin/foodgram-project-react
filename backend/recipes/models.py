@@ -81,11 +81,11 @@ class Ingredient(models.Model):
                 name="unique_for_ingredient",
             ),
             CheckConstraint(
-                check=Q(name__length__gt=0),
+                check=Q(name__len__gt=0),
                 name="\n%(app_label)s_%(class)s_name пусто\n",
             ),
             CheckConstraint(
-                check=Q(measurement_unit__length__gt=0),
+                check=Q(measurement_unit__len__gt=0),
                 name="\n%(app_label)s_%(class)s_measurement_unit пусто\n",
             ),
         )
@@ -168,7 +168,7 @@ class Recipe(models.Model):
                 name="unique_for_author",
             ),
             CheckConstraint(
-                check=Q(name__length__gt=0),
+                check=Q(name__len__gt=0),
                 name="\n%(app_label)s_%(class)s_name пусто\n",
             ),
         )
