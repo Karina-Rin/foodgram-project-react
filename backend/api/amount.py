@@ -12,11 +12,10 @@ def recipe_ingredients_set(
 
     objs = []
 
-    for ingredient, amount in ingredients.values():
+    for ingredient_id, (ingredient, amount) in ingredients.items():
         objs.append(
             AmountIngredient(
                 recipe=recipe, ingredients=ingredient, amount=amount
             )
         )
-
     AmountIngredient.objects.bulk_create(objs)
