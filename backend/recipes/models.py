@@ -3,8 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import (CASCADE, SET_NULL, CheckConstraint,
-                              DateTimeField, Q, UniqueConstraint)
+from django.db.models import CASCADE, SET_NULL, DateTimeField, UniqueConstraint
 from PIL import Image
 
 from api.validators import OneOfTwoValidator, hex_color_validator
@@ -79,14 +78,6 @@ class Ingredient(models.Model):
             UniqueConstraint(
                 fields=("name", "measurement_unit"),
                 name="unique_for_ingredient",
-            ),
-            CheckConstraint(
-                check=Q(name__len__gt=0),
-                name="\n%(app_label)s_%(class)s_name пусто\n",
-            ),
-            CheckConstraint(
-                check=Q(measurement_unit__len__gt=0),
-                name="\n%(app_label)s_%(class)s_measurement_unit пусто\n",
             ),
         )
 
@@ -166,10 +157,6 @@ class Recipe(models.Model):
             UniqueConstraint(
                 fields=("name", "author"),
                 name="unique_for_author",
-            ),
-            CheckConstraint(
-                check=Q(name__len__gt=0),
-                name="\n%(app_label)s_%(class)s_name пусто\n",
             ),
         )
 
