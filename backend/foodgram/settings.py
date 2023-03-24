@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from decouple import Csv, config
+# from decouple import Csv, config
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,11 +11,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "ns6(14uyb7kn3q10kkz+=y8#k!g$$+qhs)ho+6^nzy=9xoru3g"
 
-CSRF_TRUSTED_ORIGINS = config(
-    "CSRF_TRUSTED_ORIGINS",
-    default="http://localhost, http://127.0.0.1",
-    cast=Csv(),
-)
+# CSRF_TRUSTED_ORIGINS = config(
+#    "CSRF_TRUSTED_ORIGINS",
+#    default="http://localhost, http://127.0.0.1",
+#    cast=Csv(),
+# )
 
 # DEBUG = config("DEBUG", default=False, cast=bool)
 DEBUG = True
