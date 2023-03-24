@@ -1,7 +1,6 @@
 from collections import OrderedDict
 
 from api.amount import recipe_ingredients_set
-from api.validators import ingredients_validator, tags_exist_validator
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.models import F, QuerySet
@@ -155,9 +154,6 @@ class RecipeSerializer(ModelSerializer):
 
         if not tags_ids or not ingredients:
             raise ValidationError("Недостаточно данных.")
-
-        tags_exist_validator(tags_ids, Tag)
-        ingredients = ingredients_validator(ingredients, Ingredient)
 
         data.update(
             {

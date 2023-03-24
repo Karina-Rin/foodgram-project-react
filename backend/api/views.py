@@ -118,19 +118,19 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         is_in_shopping_cart: str = self.request.query_params.get(
             "is_in_shopping_cart"
         )
-        if is_in_shopping_cart in symbol_true_search.value:
+        if is_in_shopping_cart in symbol_true_search:
             queryset = queryset.filter(
                 in_shopping_carts__user=self.request.user
             )
-        elif is_in_shopping_cart in symbol_false_search.value:
+        elif is_in_shopping_cart in symbol_false_search:
             queryset = queryset.exclude(
                 in_shopping_carts__user=self.request.user
             )
 
         is_favorit: str = self.request.query_params.get("is_favorited")
-        if is_favorit in symbol_true_search.value:
+        if is_favorit in symbol_true_search:
             queryset = queryset.filter(in_favorites__user=self.request.user)
-        if is_favorit in symbol_false_search.value:
+        if is_favorit in symbol_false_search:
             return queryset.exclude(in_favorites__user=self.request.user)
 
         return queryset
