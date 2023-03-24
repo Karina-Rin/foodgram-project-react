@@ -146,7 +146,7 @@ class RecipeSerializer(ModelSerializer):
         if user.is_anonymous:
             return False
 
-        return user.shopping_carts.filter(recipe=recipe).exists()
+        return user.shopping_cart.filter(recipe=recipe).exists()
 
     def validate(self, data: OrderedDict) -> OrderedDict:
         tags_ids: list[int] = self.initial_data.get("tags")
