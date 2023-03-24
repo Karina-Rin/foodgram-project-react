@@ -14,8 +14,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import F, Q, QuerySet, Sum
 from django.http.response import HttpResponse
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
-                            Tag)
+from recipes.models import Favorites, Ingredient, Recipe, ShoppingCart, Tag
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
@@ -141,7 +140,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         permission_classes=(IsAuthenticated,),
     )
     def favorite(self, request: WSGIRequest, pk: int or str) -> Response:
-        return self._add_del_obj(pk, RecipeFavorite, Q(recipe__id=pk))
+        return self._add_del_obj(pk, Favorites, Q(recipe__id=pk))
 
     @action(
         methods=action_methods,

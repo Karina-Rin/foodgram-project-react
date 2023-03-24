@@ -197,7 +197,7 @@ class AmountIngredient(models.Model):
         return f"{self.amount} {self.ingredients}"
 
 
-class RecipeFavorite(models.Model):
+class Favorites(models.Model):
     user = models.ForeignKey(
         User,
         verbose_name="Автор списка избранного",
@@ -225,7 +225,7 @@ class RecipeFavorite(models.Model):
                     "recipe",
                     "user",
                 ),
-                name="\n%(app_label)s_%(class)s рецепт уже в избранных\n",
+                name="\n%(app_label)s_%(class)s recipe is favorite alredy\n",
             ),
         )
 

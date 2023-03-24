@@ -70,6 +70,7 @@ class SubscribeSerializer(UserSerializer):
             "last_name",
             "is_subscribed",
             "recipes",
+            "recipes_count",
         )
         read_only_fields = ("__all__",)
 
