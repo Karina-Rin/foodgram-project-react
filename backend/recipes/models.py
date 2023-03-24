@@ -40,7 +40,7 @@ class Tag(models.Model):
 
     class Meta:
         verbose_name = "Тэг"
-        verbose_name_plural = "Тэги"
+        verbose_name_plural = "Тэгов"
         ordering = ("name",)
 
     def __str__(self) -> str:

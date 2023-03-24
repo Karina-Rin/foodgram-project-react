@@ -17,7 +17,8 @@ CSRF_TRUSTED_ORIGINS = config(
     cast=Csv(),
 )
 
-DEBUG = config("DEBUG", default=False, cast=bool)
+# DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = True
 
 ALLOWED_HOSTS = [
     "localhost",
