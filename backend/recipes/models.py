@@ -225,7 +225,7 @@ class Favorites(models.Model):
                     "recipe",
                     "user",
                 ),
-                name="\n%(app_label)s_%(class)s recipe is favorite alredy\n",
+                name="\n%(app_label)s_%(class)s рецепт уже в избранных\n",
             ),
         )
 
@@ -233,18 +233,18 @@ class Favorites(models.Model):
         return f"{self.user} -> {self.recipe}"
 
 
-class ShoppingCart(models.Model):
+class Carts(models.Model):
     user = models.ForeignKey(
         User,
         verbose_name="Автор списка покупок",
-        related_name="shopping_cart",
+        related_name="carts",
         help_text="Выберите автора",
         on_delete=CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
         verbose_name="Рецепты в списке покупок",
-        related_name="in_shopping_carts",
+        related_name="in_carts",
         help_text="Выберите рецепты для добавления продуктов в корзину",
         on_delete=CASCADE,
     )

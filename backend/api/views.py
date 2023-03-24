@@ -14,7 +14,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import F, Q, QuerySet, Sum
 from django.http.response import HttpResponse
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import Favorites, Ingredient, Recipe, ShoppingCart, Tag
+from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
@@ -114,17 +114,11 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         if self.request.user.is_anonymous:
             return queryset
 
-        is_in_shopping_cart: str = self.request.query_params.get(
-            "is_in_shopping_cart"
-        )
-        if is_in_shopping_cart in symbol_true_search:
-            queryset = queryset.filter(
-                in_shopping_carts__user=self.request.user
-            )
-        elif is_in_shopping_cart in symbol_false_search:
-            queryset = queryset.exclude(
-                in_shopping_carts__user=self.request.user
-            )
+        is_in_cart: str = self.request.query_params.get("is_in_shopping_cart")
+        if is_in_cart in symbol_true_search:
+            queryset = queryset.filter(in_carts__user=self.request.user)
+        elif is_in_cart in symbol_false_search:
+            queryset = queryset.exclude(in_carts__user=self.request.user)
 
         is_favorit: str = self.request.query_params.get("is_favorited")
         if is_favorit in symbol_true_search:
@@ -148,12 +142,12 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         permission_classes=(IsAuthenticated,),
     )
     def shopping_cart(self, request: WSGIRequest, pk: int or str) -> Response:
-        return self._add_del_obj(pk, ShoppingCart, Q(recipe__id=pk))
+        return self._add_del_obj(pk, Carts, Q(recipe__id=pk))
 
     @action(methods=("get",), detail=False)
     def download_shopping_cart(self, request: WSGIRequest) -> Response:
         user = self.request.user
-        if not user.shopping_cart.exists():
+        if not user.carts.exists():
             return Response(status=HTTP_400_BAD_REQUEST)
 
         filename = f"{user.username}_shopping_list.txt"
@@ -163,9 +157,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         ]
 
         ingredients = (
-            Ingredient.objects.filter(
-                recipe__recipe__in_shopping_carts__user=user
-            )
+            Ingredient.objects.filter(recipe__recipe__in_carts__user=user)
             .values("name", measurement=F("measurement_unit"))
             .annotate(amount=Sum("recipe__amount"))
         )
