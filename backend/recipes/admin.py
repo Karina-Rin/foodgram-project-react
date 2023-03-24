@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.admin import ModelAdmin, TabularInline, register, site
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils.safestring import SafeString, mark_safe
-
 from recipes.models import (AmountIngredient, Ingredient, Recipe,
                             RecipeFavorite, ShoppingCart, Tag)
 

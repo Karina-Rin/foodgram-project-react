@@ -1,15 +1,14 @@
 from collections import OrderedDict
 
+from api.amount import recipe_ingredients_set
+from api.validators import ingredients_validator, tags_exist_validator
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.models import F, QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
-
-from api.amount import recipe_ingredients_set
-from api.validators import ingredients_validator, tags_exist_validator
 from recipes.models import Ingredient, Recipe, Tag
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 User = get_user_model()
 
@@ -130,10 +129,9 @@ class RecipeSerializer(ModelSerializer):
         )
 
     def get_ingredients(self, recipe: Recipe) -> QuerySet[dict]:
-        ingredients = recipe.ingredients.values(
+        return recipe.ingredients.values(
             "id", "name", "measurement_unit", amount=F("recipe__amount")
         )
-        return ingredients
 
     def get_is_favorited(self, recipe: Recipe) -> bool:
         user = self.context.get("view").request.user

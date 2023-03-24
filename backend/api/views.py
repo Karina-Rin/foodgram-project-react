@@ -2,27 +2,26 @@ from datetime import datetime as dt
 from typing import List
 from urllib.parse import unquote
 
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.core.handlers.wsgi import WSGIRequest
-from django.db.models import F, Q, QuerySet, Sum
-from django.http.response import HttpResponse
-from djoser.views import UserViewSet as DjoserUserViewSet
-from rest_framework.decorators import action
-from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.routers import APIRootView
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-
 from api.mixins import AddDelViewMixin
 from api.paginators import PageLimitPagination
 from api.permissions import AdminOrReadOnly, AuthorStaffOrReadOnly
 from api.serializers import (IngredientSerializer, RecipeSerializer,
                              ShortRecipeSerializer, SubscribeSerializer,
                              TagSerializer)
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.handlers.wsgi import WSGIRequest
+from django.db.models import F, Q, QuerySet, Sum
+from django.http.response import HttpResponse
+from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import (Ingredient, Recipe, RecipeFavorite, ShoppingCart,
                             Tag)
+from rest_framework.decorators import action
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.routers import APIRootView
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from users.models import Subscribe
 
 date_time_format = settings.DATE_TIME_FORMAT
@@ -69,8 +68,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 
     def get_queryset(self) -> List[Ingredient]:
         name: str = self.request.query_params.get("name")
-        queryset = self.queryset
-
         if name:
             if name[0] == "%":
                 name = unquote(name)
@@ -81,17 +78,16 @@ class IngredientViewSet(ReadOnlyModelViewSet):
                         "йцукенгшщзхъфывапролджэячсмитьбю.",
                     )
                 )
-
             name = name.lower()
-            start_queryset = list(queryset.filter(name__istartswith=name))
+            start_queryset = list(self.queryset.filter(name__istartswith=name))
             ingridients_set = set(start_queryset)
-            cont_queryset = queryset.filter(name__icontains=name)
+            cont_queryset = self.queryset.filter(name__icontains=name)
             start_queryset.extend(
                 [ing for ing in cont_queryset if ing not in ingridients_set]
             )
-            queryset = start_queryset
+            return start_queryset
 
-        return queryset
+        return self.queryset
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -110,11 +106,11 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     def get_queryset(self) -> QuerySet[Recipe]:
         queryset = self.queryset
 
-        tags: list = self.request.query_params.getlist("tags".value)
+        tags: list = self.request.query_params.getlist("tags")
         if tags:
             queryset = queryset.filter(tags__slug__in=tags).distinct()
 
-        author: str = self.request.query_params.get("author".value)
+        author: str = self.request.query_params.get("author")
         if author:
             queryset = queryset.filter(author=author)
 
@@ -137,7 +133,8 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         if is_favorit in symbol_true_search.value:
             queryset = queryset.filter(in_favorites__user=self.request.user)
         if is_favorit in symbol_false_search.value:
-            queryset = queryset.exclude(in_favorites__user=self.request.user)
+            return queryset.exclude(in_favorites__user=self.request.user)
+
         return queryset
 
     @action(
