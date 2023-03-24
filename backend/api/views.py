@@ -4,7 +4,7 @@ from urllib.parse import unquote
 
 from api.mixins import AddDelViewMixin
 from api.paginators import PageLimitPagination
-from api.permissions import AdminOrReadOnly, AuthorStaffOrReadOnly
+from api.permissions import OwnerOrReadOnly
 from api.serializers import (IngredientSerializer, RecipeSerializer,
                              ShortRecipeSerializer, SubscribeSerializer,
                              TagSerializer)
@@ -64,7 +64,6 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
 class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (AdminOrReadOnly,)
 
     def get_queryset(self) -> List[Ingredient]:
         name: str = self.request.query_params.get("name")
@@ -93,13 +92,12 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 class TagViewSet(ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (AdminOrReadOnly,)
 
 
 class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     queryset = Recipe.objects.select_related("author")
     serializer_class = RecipeSerializer
-    permission_classes = (AuthorStaffOrReadOnly,)
+    permission_classes = (OwnerOrReadOnly,)
     pagination_class = PageLimitPagination
     add_serializer = ShortRecipeSerializer
 
