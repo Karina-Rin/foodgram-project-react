@@ -176,13 +176,14 @@ class RecipeSerializer(ModelSerializer):
         AmountIngredient.objects.bulk_create(objs)
 
     @atomic
-    def create(self, validated_data: dict) -> Recipe:
-        tags: list[int] = validated_data.pop("tags")
-        ingredients: dict[int, tuple] = validated_data.pop("ingredients")
-        recipe = Recipe.objects.create(**validated_data)
-        recipe.tags.set(tags)
-        self.recipe_ingredients_set(recipe, ingredients)
-        return recipe
+    def create(self, validated_data):
+        request = self.context["request"]
+        ingredients = validated_data.pop("ingredients")
+        tags = validated_data.pop("tags")
+        instance = Recipe.objects.create(author=request.user, **validated_data)
+        RecipeSerializer.recipe_ingredients_set(instance, ingredients)
+        instance.tags.set(tags)
+        return instance
 
     @atomic
     def update(self, recipe: Recipe, validated_data: dict):
