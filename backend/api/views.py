@@ -28,10 +28,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from users.models import Subscribe
 
-date_time_format = settings.DATE_TIME_FORMAT
 action_methods = settings.ACTION_METHODS
-symbol_true_search = settings.SYMBOL_TRUE_SEARCH
-symbol_false_search = settings.SYMBOL_FALSE_SEARCH
 
 User = get_user_model()
 
@@ -188,4 +185,4 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         response = HttpResponse(shopping_list, content_type="text/plain")
         response["Content-Disposition"] = f"attachment; filename={filename}"
 
-        return
+        return response
