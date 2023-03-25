@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Dict, Tuple
 
-from api.validators import ingredients_validator, tags_exist_validator
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.transaction import atomic
@@ -155,9 +154,6 @@ class RecipeSerializer(ModelSerializer):
         if not tags_ids or not ingredients:
             raise ValidationError("Недостаточно данных.")
 
-        tags_exist_validator(tags_ids, Tag)
-        ingredients = ingredients_validator(ingredients, Ingredient)
-
         data.update(
             {
                 "tags": tags_ids,
@@ -168,15 +164,16 @@ class RecipeSerializer(ModelSerializer):
         return data
 
     def recipe_ingredients_set(
-        self, recipe: Recipe, ingredients: Dict[int, Tuple["Ingredient", int]]
+        recipe: Recipe, ingredients: Dict[int, Tuple["Ingredient", int]]
     ) -> None:
         objs = []
-        for ingredient_id, (ingredient, amount) in ingredients:
-            objs[ingredient_id] = AmountIngredient(
-                recipe=recipe, ingredients=ingredient, amount=amount
+        for ingredient_id, (ingredient, amount) in ingredients.items():
+            objs.append(
+                AmountIngredient(
+                    recipe=recipe, ingredients=ingredient, amount=amount
+                )
             )
-
-        AmountIngredient.objects.bulk_create(list(objs.values()))
+        AmountIngredient.objects.bulk_create(objs)
 
     @atomic
     def create(self, validated_data: dict) -> Recipe:
