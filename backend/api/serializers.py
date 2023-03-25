@@ -1,17 +1,15 @@
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Dict, Tuple
 
+from api.amount import recipe_ingredients_set
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import F
 from django.db.models.query import QuerySet
+from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
+from recipes.models import Ingredient, Recipe, Tag
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-if TYPE_CHECKING:
-    from recipes.models import Ingredient
 User = get_user_model()
 
 
@@ -104,19 +102,6 @@ class IngredientSerializer(ModelSerializer):
         read_only_fields = ("__all__",)
 
 
-def recipe_ingredients_set(
-    recipe: Recipe, ingredients: Dict[int, Tuple["Ingredient", int]]
-) -> None:
-    objs = []
-    for ingredient, amount in ingredients.values():
-        objs.append(
-            AmountIngredient(
-                recipe=recipe, ingredient=ingredient, amount=amount
-            )
-        )
-    AmountIngredient.objects.bulk_create(objs)
-
-
 class RecipeSerializer(ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
@@ -181,43 +166,31 @@ class RecipeSerializer(ModelSerializer):
         )
         return data
 
-    @transaction.atomic
-    def create_ingredients_amounts(self, ingredients, recipe):
-        Ingredient.objects.bulk_create(
-            [
-                Ingredient(
-                    ingredient=Ingredient.objects.get(id=ingredient["id"]),
-                    recipe=recipe,
-                    amount=ingredient["amount"],
-                )
-                for ingredient in ingredients
-            ]
-        )
-
-    @transaction.atomic
-    def create(self, validated_data):
-        tags = validated_data.pop("tags")
-        ingredients = validated_data.pop("ingredients")
+    @atomic
+    def create(self, validated_data: dict) -> Recipe:
+        tags: list[int] = validated_data.pop("tags")
+        ingredients: dict[int, tuple] = validated_data.pop("ingredients")
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        self.create_ingredients_amounts(recipe=recipe, ingredients=ingredients)
+        recipe_ingredients_set(recipe, ingredients)
         return recipe
 
-    @transaction.atomic
-    def update(self, instance, validated_data):
+    @atomic
+    def update(self, recipe: Recipe, validated_data: dict):
         tags = validated_data.pop("tags")
         ingredients = validated_data.pop("ingredients")
-        instance = super().update(instance, validated_data)
-        instance.tags.clear()
-        instance.tags.set(tags)
-        instance.ingredients.clear()
-        self.create_ingredients_amounts(
-            recipe=instance, ingredients=ingredients
-        )
-        instance.save()
-        return instance
 
-    def to_representation(self, instance):
-        request = self.context.get("request")
-        context = {"request": request}
-        return RecipeSerializer(instance, context=context).data
+        for key, value in validated_data.items():
+            if hasattr(recipe, key):
+                setattr(recipe, key, value)
+
+        if tags:
+            recipe.tags.clear()
+            recipe.tags.set(tags)
+
+        if ingredients:
+            recipe.ingredients.clear()
+            recipe_ingredients_set(recipe, ingredients)
+
+        recipe.save()
+        return
