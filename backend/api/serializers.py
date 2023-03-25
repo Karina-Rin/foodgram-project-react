@@ -164,16 +164,15 @@ class RecipeSerializer(ModelSerializer):
         return data
 
     def recipe_ingredients_set(
-        self, recipe: Recipe, ingredients: Dict[int, Tuple["Ingredient", int]]
+        recipe: Recipe, ingredients: Dict[int, Tuple["Ingredient", int]]
     ) -> None:
         objs = []
-        for ingredient_id, (ingredient, amount) in ingredients.items():
-            objs.append(
-                AmountIngredient(
-                    recipe=recipe, ingredients=ingredient, amount=amount
-                )
+        for ingredient_id, (ingredient, amount) in ingredients:
+            objs[ingredient_id] = AmountIngredient(
+                recipe=recipe, ingredients=ingredient, amount=amount
             )
-        AmountIngredient.objects.bulk_create(objs)
+
+        AmountIngredient.objects.bulk_create(list(objs.values()))
 
     @atomic
     def create(self, validated_data: dict) -> Recipe:
