@@ -15,7 +15,9 @@ from django.db.models import F, Q, Sum
 from django.http.response import HttpResponse
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
+from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
@@ -100,46 +102,21 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     pagination_class = PageLimitPagination
     add_serializer = ShortRecipeSerializer
 
-    def get_queryset(self):
-        queryset = Recipe.objects.all()
-        user = self.request.user
-        is_favorited = self.request.query_params.get("is_favorited")
-        if is_favorited:
-            recipes_id = (
-                Favorites.objects.filter(user=user).values("recipe__id")
-                if user.is_authenticated
-                else []
-            )
-            condition = Q(id__in=recipes_id)
-            queryset = queryset.filter(
-                condition if is_favorited == "1" else ~condition
-            ).all()
-        is_in_shopping_cart = self.request.query_params.get(
-            "is_in_shopping_cart"
+    def get_serializer_class(self):
+        return self.serializer_classes.get(
+            self.action, self.default_serializer_class
         )
-        if is_in_shopping_cart:
-            recipes_id = (
-                Carts.objects.filter(user=user).values("recipe__id")
-                if user.is_authenticated
-                else []
-            )
-            condition = Q(id__in=recipes_id)
-            queryset = queryset.filter(
-                condition if is_in_shopping_cart == "1" else ~condition
-            ).all()
-        author_id = self.request.query_params.get("author")
-        if author_id:
-            queryset = queryset.filter(author__id=author_id).all()
-        tags = self.request.query_params.getlist("tags")
-        if tags:
-            tags = Tag.objects.filter(slug__in=tags).all()
-            recipes_id = (
-                Tag.objects.filter(tag__in=tags)
-                .values("recipe__id")
-                .distinct()
-            )
-            queryset = queryset.filter(id__in=recipes_id)
-        return queryset
+
+    def _favorite_shopping_post_delete(self, related_manager):
+        recipe = self.get_object()
+        if self.request.method == "DELETE":
+            related_manager.get(recipe_id=recipe.id).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        if related_manager.filter(recipe=recipe).exists():
+            raise ValidationError("Рецепт уже в избранном")
+        related_manager.create(recipe=recipe)
+        serializer = RecipeSerializer(instance=recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(
         methods=action_methods,
