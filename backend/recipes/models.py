@@ -1,8 +1,8 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import CASCADE, SET_NULL, DateTimeField, UniqueConstraint
 from PIL import Image
-from users.models import User
 
 max_legth = settings.MAX_LEGTH
 max_len_recipes = settings.MAX_LEN_RECIPES
@@ -11,6 +11,8 @@ max_cook_time = settings.MAX_COOK_TIME
 recipe_image_size = settings.RECIPE_IMAGE_SIZE
 min_amount_imgredients = settings.MIN_AMOUNT_INGREDIENTS
 max_amount_imgredients = settings.MAX_AMOUNT_INGREDIENTS
+
+User = get_user_model()
 
 
 class Tag(models.Model):

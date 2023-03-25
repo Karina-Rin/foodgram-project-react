@@ -4,6 +4,7 @@ from api.amount import recipe_ingredients_set
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.models import F
+from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import Ingredient, Recipe, Tag
@@ -128,7 +129,7 @@ class RecipeSerializer(ModelSerializer):
             "is_shopping_cart",
         )
 
-    def get_ingredients(self, recipe: Recipe):
+    def get_ingredients(self, recipe: Recipe) -> QuerySet:
         return recipe.ingredients.values(
             "id", "name", "measurement_unit", amount=F("recipe__amount")
         )
