@@ -77,7 +77,7 @@ def hex_color_validator(color: str) -> str:
     return "#" + color.upper()
 
 
-def tags_exist_validator(tags_ids: List[int or str], Tag: "Tag") -> None:
+def tags_exist_validator(tags_ids: List[int or str], tag: "Tag") -> None:
     exists_tags = Tag.objects.filter(id__in=tags_ids)
 
     if len(exists_tags) != len(tags_ids):
@@ -86,7 +86,7 @@ def tags_exist_validator(tags_ids: List[int or str], Tag: "Tag") -> None:
 
 def ingredients_validator(
     ingredients: List[Dict[str, str or int]],
-    Ingredient: "Ingredient",
+    ingredient: "Ingredient",
 ) -> Dict[int, Tuple["Ingredient", int]]:
     valid_ings = {}
 
