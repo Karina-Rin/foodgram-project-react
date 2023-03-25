@@ -12,12 +12,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import F, Q, Sum
+from django.db.models.query import QuerySet
 from django.http.response import HttpResponse
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
-from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
@@ -102,21 +101,33 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     pagination_class = PageLimitPagination
     add_serializer = ShortRecipeSerializer
 
-    def get_serializer_class(self):
-        return self.serializer_classes.get(
-            self.action, self.default_serializer_class
-        )
+    def get_queryset(self) -> QuerySet:
+        queryset = self.queryset
 
-    def _favorite_shopping_post_delete(self, related_manager):
-        recipe = self.get_object()
-        if self.request.method == "DELETE":
-            related_manager.get(recipe_id=recipe.id).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        if related_manager.filter(recipe=recipe).exists():
-            raise ValidationError("Рецепт уже в избранном")
-        related_manager.create(recipe=recipe)
-        serializer = RecipeSerializer(instance=recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        tags: list = self.request.query_params.getlist("tags")
+        if tags:
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
+
+        author: str = self.request.query_params.get("author")
+        if author:
+            queryset = queryset.filter(author=author)
+
+        if self.request.user.is_anonymous:
+            return queryset
+
+        is_in_cart: str = self.request.query_params.get("is_in_shopping_cart")
+        if is_in_cart in symbol_true_search:
+            queryset = queryset.filter(in_carts__user=self.request.user)
+        elif is_in_cart in symbol_false_search:
+            queryset = queryset.exclude(in_carts__user=self.request.user)
+
+        is_favorit: str = self.request.query_params.get("is_favorited")
+        if is_favorit in symbol_true_search:
+            queryset = queryset.filter(in_favorites__user=self.request.user)
+        if is_favorit in symbol_false_search:
+            return queryset.exclude(in_favorites__user=self.request.user)
+
+        return queryset
 
     @action(
         methods=action_methods,
