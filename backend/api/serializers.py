@@ -6,7 +6,7 @@ from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
 from rest_framework import status
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from users.models import Subscribe
@@ -177,14 +177,14 @@ class RecipeSerializer(ModelSerializer):
         ingredients = value
         if not ingredients:
             raise ValidationError(
-                {"ingredients": "Нужен хотя бы один ингредиент!"}
+                {"ingredients": "Нужен хотя бы 1 ингредиент!"}
             )
         ingredients_list = []
         for item in ingredients:
             ingredient = get_object_or_404(Ingredient, id=item["id"])
             if ingredient in ingredients_list:
                 raise ValidationError(
-                    {"ingredients": "Ингридиенты не могут повторяться!"}
+                    {"ingredients": "Ингредиенты не могут повторяться!"}
                 )
             if int(item["amount"]) <= 0:
                 raise ValidationError(
@@ -196,21 +196,21 @@ class RecipeSerializer(ModelSerializer):
     def validate_tags(self, value):
         tags = value
         if not tags:
-            raise ValidationError({"tags": "Нужно выбрать хотя бы один тег!"})
+            raise ValidationError({"tags": "Нужно выбрать хотя бы 1 тэг!"})
         tags_list = []
         for tag in tags:
             if tag in tags_list:
                 raise ValidationError(
-                    {"tags": "Теги должны быть уникальными!"}
+                    {"tags": "Тэги должны быть уникальными!"}
                 )
             tags_list.append(tag)
         return value
 
     @transaction.atomic
     def create_ingredients_amounts(self, ingredients, recipe):
-        Ingredient.objects.bulk_create(
+        AmountIngredient.objects.bulk_create(
             [
-                Ingredient(
+                AmountIngredient(
                     ingredient=Ingredient.objects.get(id=ingredient["id"]),
                     recipe=recipe,
                     amount=ingredient["amount"],
@@ -241,8 +241,3 @@ class RecipeSerializer(ModelSerializer):
         )
         instance.save()
         return instance
-
-    def to_representation(self, instance):
-        request = self.context.get("request")
-        context = {"request": request}
-        return RecipeSerializer(instance, context=context).data
