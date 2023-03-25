@@ -164,7 +164,7 @@ class RecipeSerializer(ModelSerializer):
         return data
 
     def recipe_ingredients_set(
-        recipe: Recipe, ingredients: Dict[int, Tuple["Ingredient", int]]
+        self, recipe: Recipe, ingredients: Dict[int, Tuple["Ingredient", int]]
     ) -> None:
         objs = []
         for ingredient_id, (ingredient, amount) in ingredients:
