@@ -1,13 +1,15 @@
 from collections import OrderedDict
+from typing import TYPE_CHECKING, Dict, Tuple
 
-from api.amount import recipe_ingredients_set
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.db.models import F, QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
+
+if TYPE_CHECKING:
+    from recipes.models import Ingredient
 
 User = get_user_model()
 
@@ -123,15 +125,11 @@ class RecipeSerializer(ModelSerializer):
             "text",
             "cooking_time",
         )
-        read_only_fields = (
-            "is_favorite",
-            "is_shopping_cart",
-        )
 
-    def get_ingredients(self, recipe: Recipe) -> QuerySet[dict]:
-        return recipe.ingredients.values(
-            "id", "name", "measurement_unit", amount=F("recipe__amount")
-        )
+    @staticmethod
+    def get_ingredients(obj):
+        ingredients = Ingredient.objects.filter(recipe=obj)
+        return IngredientSerializer(ingredients, many=True).data
 
     def get_is_favorited(self, recipe: Recipe) -> bool:
         user = self.context.get("view").request.user
@@ -165,13 +163,25 @@ class RecipeSerializer(ModelSerializer):
         )
         return data
 
+    def recipe_ingredients_set(
+        recipe: Recipe, ingredients: Dict[int, Tuple["Ingredient", int]]
+    ) -> None:
+        objs = []
+        for ingredient_id, (ingredient, amount) in ingredients.items():
+            objs.append(
+                AmountIngredient(
+                    recipe=recipe, ingredients=ingredient, amount=amount
+                )
+            )
+        AmountIngredient.objects.bulk_create(objs)
+
     @atomic
     def create(self, validated_data: dict) -> Recipe:
         tags: list[int] = validated_data.pop("tags")
         ingredients: dict[int, tuple] = validated_data.pop("ingredients")
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        recipe_ingredients_set(recipe, ingredients)
+        self.recipe_ingredients_set(recipe, ingredients)
         return recipe
 
     @atomic
@@ -189,7 +199,7 @@ class RecipeSerializer(ModelSerializer):
 
         if ingredients:
             recipe.ingredients.clear()
-            recipe_ingredients_set(recipe, ingredients)
+            self.recipe_ingredients_set(recipe, ingredients)
 
         recipe.save()
         return
