@@ -12,7 +12,7 @@ def recipe_ingredients_set(
 
     objs = []
 
-    for ingredient_id, (ingredient, amount) in ingredients.items():
+    for ingredient, amount in ingredients():
         objs.append(
             AmountIngredient(
                 recipe=recipe, ingredients=ingredient, amount=amount
