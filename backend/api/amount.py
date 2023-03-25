@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from recipes.models import Ingredient
 
 
-def create_ingredients_amounts(self, ingredients, recipe):
+def create_ingredients_amounts(ingredients, recipe):
     AmountIngredient.objects.bulk_create(
         [
             AmountIngredient(

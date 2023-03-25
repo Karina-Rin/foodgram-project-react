@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import CASCADE, SET_NULL, DateTimeField, UniqueConstraint
-from PIL import Image
 from users.models import User
 
 max_legth = settings.MAX_LEGTH
@@ -135,28 +134,12 @@ class Recipe(models.Model):
     )
 
     class Meta:
+        ordering = ["-id"]
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
-        ordering = ("-pub_date",)
-        constraints = (
-            UniqueConstraint(
-                fields=("name", "author"),
-                name="unique_for_author",
-            ),
-        )
 
-    def __str__(self) -> str:
-        return f"{self.name}. Автор: {self.author.username}"
-
-    def clean(self) -> None:
-        self.name = self.name.capitalize()
-        super().clean()
-
-    def save(self, *args, **kwargs) -> None:
-        super().save(*args, **kwargs)
-        image = Image.open(self.image.path)
-        image = image.resize(recipe_image_size)
-        image.save(self.image.path)
+    def __str__(self):
+        return self.name
 
 
 class AmountIngredient(models.Model):
@@ -181,12 +164,14 @@ class AmountIngredient(models.Model):
     )
 
     class Meta:
-        verbose_name = "Ингредиент из рецепта"
-        verbose_name_plural = "Игредиенты из рецептов"
-        ordering = ("recipe",)
+        verbose_name = "Ингредиент в рецепте"
+        verbose_name_plural = "Ингредиенты в рецептах"
 
-    def __str__(self) -> str:
-        return f"{self.amount} {self.ingredients}"
+    def __str__(self):
+        return (
+            f"{self.ingredient.name} ({self.ingredient.measurement_unit})"
+            f" - {self.amount} "
+        )
 
 
 class Favorites(models.Model):
@@ -211,9 +196,14 @@ class Favorites(models.Model):
     class Meta:
         verbose_name = "Избранный рецепт"
         verbose_name_plural = "Избранные рецепты"
+        constraints = [
+            UniqueConstraint(
+                fields=["user", "recipe"], name="unique_favourite"
+            )
+        ]
 
-    def __str__(self) -> str:
-        return f"{self.user} -> {self.recipe}"
+    def __str__(self):
+        return f'{self.user} добавил "{self.recipe}" в Избранное'
 
 
 class Carts(models.Model):
@@ -238,6 +228,11 @@ class Carts(models.Model):
     class Meta:
         verbose_name = "Рецепт в списке покупок"
         verbose_name_plural = "Рецепты в списке покупок"
+        constraints = [
+            UniqueConstraint(
+                fields=["user", "recipe"], name="unique_shopping_cart"
+            )
+        ]
 
-    def __str__(self) -> str:
-        return f"{self.user} -> {self.recipe}"
+    def __str__(self):
+        return f'{self.user} добавил "{self.recipe}" в корзину покупок'
