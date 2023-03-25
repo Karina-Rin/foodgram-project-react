@@ -181,9 +181,9 @@ class RecipeSerializer(ModelSerializer):
 
     @atomic
     def recipe_ingredients_set(self, ingredients, recipe):
-        Ingredient.objects.bulk_create(
+        AmountIngredient.objects.bulk_create(
             [
-                Ingredient(
+                AmountIngredient(
                     ingredient=Ingredient.objects.get(id=ingredient["id"]),
                     recipe=recipe,
                     amount=ingredient["amount"],
