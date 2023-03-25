@@ -1,17 +1,15 @@
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Dict, Tuple
+from typing import Dict, Tuple
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import F
 from django.db.models.query import QuerySet
+from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-if TYPE_CHECKING:
-    from recipes.models import Ingredient
 User = get_user_model()
 
 
@@ -181,8 +179,8 @@ class RecipeSerializer(ModelSerializer):
         )
         return data
 
-    @transaction.atomic
-    def create_ingredients_amounts(self, ingredients, recipe):
+    @atomic
+    def recipe_ingredients_set(self, ingredients, recipe):
         Ingredient.objects.bulk_create(
             [
                 Ingredient(
@@ -194,30 +192,29 @@ class RecipeSerializer(ModelSerializer):
             ]
         )
 
-    @transaction.atomic
-    def create(self, validated_data):
-        tags = validated_data.pop("tags")
-        ingredients = validated_data.pop("ingredients")
+    @atomic
+    def create(self, validated_data: dict) -> Recipe:
+        tags: list[int] = validated_data.pop("tags")
+        ingredients: dict[int, tuple] = validated_data.pop("ingredients")
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        self.create_ingredients_amounts(recipe=recipe, ingredients=ingredients)
+        self.recipe_ingredients_set(recipe, ingredients)
         return recipe
 
-    @transaction.atomic
-    def update(self, instance, validated_data):
+    @atomic
+    def update(self, recipe: Recipe, validated_data: dict):
         tags = validated_data.pop("tags")
         ingredients = validated_data.pop("ingredients")
-        instance = super().update(instance, validated_data)
-        instance.tags.clear()
-        instance.tags.set(tags)
-        instance.ingredients.clear()
-        self.create_ingredients_amounts(
-            recipe=instance, ingredients=ingredients
-        )
-        instance.save()
-        return instance
+        for key, value in validated_data.items():
+            if hasattr(recipe, key):
+                setattr(recipe, key, value)
+        if tags:
+            recipe.tags.clear()
+            recipe.tags.set(tags)
 
-    def to_representation(self, instance):
-        request = self.context.get("request")
-        context = {"request": request}
-        return RecipeSerializer(instance, context=context).data
+        if ingredients:
+            recipe.ingredients.clear()
+            self.recipe_ingredients_set(recipe, ingredients)
+
+        recipe.save()
+        return recipe
