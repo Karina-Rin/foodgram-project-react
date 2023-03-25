@@ -15,5 +15,6 @@ def create_ingredients_amounts(ingredients, recipe):
                 amount=ingredient["amount"],
             )
             for ingredient in ingredients
-        ]
+        ],
+        [recipe],
     )
