@@ -184,15 +184,6 @@ class AmountIngredient(models.Model):
         verbose_name = "Ингредиент из рецепта"
         verbose_name_plural = "Игредиенты из рецептов"
         ordering = ("recipe",)
-        constraints = (
-            UniqueConstraint(
-                fields=(
-                    "recipe",
-                    "ingredients",
-                ),
-                name="\n%(app_label)s_%(class)s ингредиент уже добавлен\n",
-            ),
-        )
 
     def __str__(self) -> str:
         return f"{self.amount} {self.ingredients}"
@@ -220,15 +211,6 @@ class Favorites(models.Model):
     class Meta:
         verbose_name = "Избранный рецепт"
         verbose_name_plural = "Избранные рецепты"
-        constraints = (
-            UniqueConstraint(
-                fields=(
-                    "recipe",
-                    "user",
-                ),
-                name="\n%(app_label)s_%(class)s рецепт уже в избранных\n",
-            ),
-        )
 
     def __str__(self) -> str:
         return f"{self.user} -> {self.recipe}"
@@ -256,15 +238,6 @@ class Carts(models.Model):
     class Meta:
         verbose_name = "Рецепт в списке покупок"
         verbose_name_plural = "Рецепты в списке покупок"
-        constraints = (
-            UniqueConstraint(
-                fields=(
-                    "recipe",
-                    "user",
-                ),
-                name="\n%(app_label)s_%(class)s рецепт уже есть в корзине\n",
-            ),
-        )
 
     def __str__(self) -> str:
         return f"{self.user} -> {self.recipe}"

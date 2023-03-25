@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from api.amount import recipe_ingredients_set
+from api.amount import create_ingredients_amounts
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.models import F
@@ -172,7 +172,7 @@ class RecipeSerializer(ModelSerializer):
         ingredients: dict[int, tuple] = validated_data.pop("ingredients")
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        recipe_ingredients_set(recipe, ingredients)
+        create_ingredients_amounts(recipe, ingredients)
         return recipe
 
     @atomic
@@ -190,7 +190,7 @@ class RecipeSerializer(ModelSerializer):
 
         if ingredients:
             recipe.ingredients.clear()
-            recipe_ingredients_set(recipe, ingredients)
+            create_ingredients_amounts(recipe, ingredients)
 
         recipe.save()
         return

@@ -1,19 +1,19 @@
-from typing import TYPE_CHECKING, Dict, Tuple
+from typing import TYPE_CHECKING
 
-from recipes.models import AmountIngredient, Recipe
+from recipes.models import AmountIngredient
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient
 
 
-def recipe_ingredients_set(
-    recipe: Recipe, ingredients: Dict[int, Tuple["Ingredient", int]]
-) -> None:
-    objs = []
-    for ingredient, amount in ingredients.values():
-        objs.append(
+def create_ingredients_amounts(self, ingredients, recipe):
+    AmountIngredient.objects.bulk_create(
+        [
             AmountIngredient(
-                recipe=recipe, ingredient=ingredient, amount=amount
+                ingredient=Ingredient.objects.get(id=ingredient["id"]),
+                recipe=recipe,
+                amount=ingredient["amount"],
             )
-        )
-    AmountIngredient.objects.bulk_create(objs)
+            for ingredient in ingredients
+        ]
+    )
