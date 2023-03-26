@@ -2,8 +2,8 @@ from django.conf import settings
 from django.contrib.admin import ModelAdmin, TabularInline, register, site
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils.safestring import SafeString, mark_safe
-from recipes.models import (AmountIngredient, Carts, Favorites, Ingredient,
-                            Recipe, Tag)
+from recipes.models import (AmountIngredient, Favorites, Ingredient, Recipe,
+                            ShoppingCart, Tag)
 
 site.site_header = "Администрирование приложения Foodgram"
 
@@ -101,17 +101,17 @@ class FavoriteAdmin(ModelAdmin):
         return False
 
 
-@register(Carts)
+@register(ShoppingCart)
 class CartAdmin(ModelAdmin):
     list_display = ("user", "recipe", "date_added")
     search_fields = ("user__username", "recipe__name")
 
     def has_change_permission(
-        self, request: WSGIRequest, obj: Carts or None = None
+        self, request: WSGIRequest, obj: ShoppingCart or None = None
     ) -> bool:
         return False
 
     def has_delete_permission(
-        self, request: WSGIRequest, obj: Carts or None = None
+        self, request: WSGIRequest, obj: ShoppingCart or None = None
     ) -> bool:
         return False

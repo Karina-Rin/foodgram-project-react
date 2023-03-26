@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import CASCADE, SET_NULL, DateTimeField, UniqueConstraint
-from PIL import Image
 from users.models import User
 
 max_legth = settings.MAX_LEGTH
@@ -42,15 +41,6 @@ class Tag(models.Model):
     class Meta:
         verbose_name = "Тэг"
         verbose_name_plural = "Тэги"
-        ordering = ("name",)
-
-    def __str__(self) -> str:
-        return f"{self.name} (цвет: {self.color})"
-
-    def clean(self) -> None:
-        self.name = self.name.strip().lower()
-        self.slug = self.slug.strip().lower()
-        return super().clean()
 
 
 class Ingredient(models.Model):
@@ -68,7 +58,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
-        ordering = ("name",)
+        ordering = ["name"]
         constraints = (
             UniqueConstraint(
                 fields=("name", "measurement_unit"),
@@ -78,11 +68,6 @@ class Ingredient(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} {self.measurement_unit}"
-
-    def clean(self) -> None:
-        self.name = self.name.lower()
-        self.measurement_unit = self.measurement_unit.lower()
-        super().clean()
 
 
 class Recipe(models.Model):
@@ -137,7 +122,7 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
-        ordering = ("-pub_date",)
+        ordering = ["-id"]
         constraints = (
             UniqueConstraint(
                 fields=("name", "author"),
@@ -148,28 +133,18 @@ class Recipe(models.Model):
     def __str__(self) -> str:
         return f"{self.name}. Автор: {self.author.username}"
 
-    def clean(self) -> None:
-        self.name = self.name.capitalize()
-        super().clean()
-
-    def save(self, *args, **kwargs) -> None:
-        super().save(*args, **kwargs)
-        image = Image.open(self.image.path)
-        image = image.resize(recipe_image_size)
-        image.save(self.image.path)
-
 
 class AmountIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        verbose_name="В каких рецептах",
+        verbose_name="Рецепт",
         related_name="ingredient",
         help_text="Выберите рецепт",
         on_delete=CASCADE,
     )
     ingredients = models.ForeignKey(
         Ingredient,
-        verbose_name="Связанные ингредиенты",
+        verbose_name="Ингредиент",
         related_name="recipe",
         help_text="Добавить ингредиенты рецепта в корзину",
         on_delete=CASCADE,
@@ -183,7 +158,6 @@ class AmountIngredient(models.Model):
     class Meta:
         verbose_name = "Ингредиент из рецепта"
         verbose_name_plural = "Игредиенты из рецептов"
-        ordering = ("recipe",)
         constraints = (
             UniqueConstraint(
                 fields=(
@@ -194,8 +168,11 @@ class AmountIngredient(models.Model):
             ),
         )
 
-    def __str__(self) -> str:
-        return f"{self.amount} {self.ingredients}"
+    def __str__(self):
+        return (
+            f"{self.ingredient.name} ({self.ingredient.measurement_unit})"
+            f" - {self.amount} "
+        )
 
 
 class Favorites(models.Model):
@@ -209,7 +186,7 @@ class Favorites(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         verbose_name="Избранный рецепт",
-        related_name="in_favorites",
+        related_name="favorites",
         help_text="Выберите рецепт",
         on_delete=CASCADE,
     )
@@ -218,8 +195,8 @@ class Favorites(models.Model):
     )
 
     class Meta:
-        verbose_name = "Избранный рецепт"
-        verbose_name_plural = "Избранные рецепты"
+        verbose_name = "Избранное"
+        verbose_name_plural = "Избранное"
         constraints = (
             UniqueConstraint(
                 fields=(
@@ -234,19 +211,19 @@ class Favorites(models.Model):
         return f"{self.user} -> {self.recipe}"
 
 
-class Carts(models.Model):
+class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         verbose_name="Автор списка покупок",
-        related_name="carts",
+        related_name="shopping_cart",
         help_text="Выберите автора",
         on_delete=CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
-        verbose_name="Рецепты в списке покупок",
-        related_name="in_carts",
-        help_text="Выберите рецепты для добавления продуктов в корзину",
+        verbose_name="Рецепт в списке покупок",
+        related_name="shopping_cart",
+        help_text="Выберите рецепт для добавления продуктов в корзину",
         on_delete=CASCADE,
     )
     date_added = models.DateTimeField(
@@ -254,8 +231,8 @@ class Carts(models.Model):
     )
 
     class Meta:
-        verbose_name = "Рецепт в списке покупок"
-        verbose_name_plural = "Рецепты в списке покупок"
+        verbose_name = "Корзина"
+        verbose_name_plural = "Корзина"
         constraints = (
             UniqueConstraint(
                 fields=(

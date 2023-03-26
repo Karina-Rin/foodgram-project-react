@@ -17,7 +17,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
+from recipes.models import Favorites, Ingredient, Recipe, ShoppingCart, Tag
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import (SAFE_METHODS, DjangoModelPermissions,
@@ -131,9 +131,9 @@ class RecipeViewSet(ModelViewSet):
     )
     def shopping_cart(self, request, pk):
         if request.method == "POST":
-            return self.add_to(Carts, request.user, pk)
+            return self.add_to(ShoppingCart, request.user, pk)
         else:
-            return self.delete_from(Carts, request.user, pk)
+            return self.delete_from(ShoppingCart, request.user, pk)
 
     def add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
