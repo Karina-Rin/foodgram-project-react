@@ -1,4 +1,3 @@
-from datetime import datetime as dt
 from typing import List
 from urllib.parse import unquote
 
@@ -11,18 +10,17 @@ from api.serializers import (IngredientSerializer, RecipeSerializer,
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models import F, Q, Sum
+from django.db.models import Q, Sum
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import (AmountIngredient, Carts, Favorites, Ingredient,
-                            Recipe, Tag)
+from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
+from rest_framework.status import HTTP_401_UNAUTHORIZED
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from users.models import Subscribe
 
@@ -146,37 +144,35 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         else:
             return self.delete_from(Carts, request.user, pk)
 
-    @action(methods=("get",), detail=False)
-    def download_shopping_cart(self, request: WSGIRequest) -> Response:
-        user = self.request.user
-        if not user.carts.exists():
-            return Response(status=HTTP_400_BAD_REQUEST)
-
-        filename = f"{user.username}_shopping_list.txt"
-        shopping_list = [
-            f"Список покупок для:\n\n{user.first_name}\n"
-            f"{dt.now().strftime(date_time_format)}\n"
-        ]
-
-        ingredients = (
-            AmountIngredient.objects.filter(
-                recipe__in_carts__user=request.user
+    @action(
+        detail=False,
+        methods=["get"],
+        url_name="download_shopping_cart",
+        url_path="download_shopping_cart",
+        permission_classes=(IsAuthenticated,),
+    )
+    def download_shopping_cart(self, request):
+        user = request.user
+        queryset = (
+            Carts.objects.filter(user=user)
+            .values(
+                "recipe__ingredients__name",
+                "recipe__ingredients__measurement_unit",
             )
-            .values("name")
-            .annotate(
-                measurement=F("recipe__measurement_unit"),
-                amount=Sum("recipe__amount"),
-            )
+            .annotate(Sum("recipe__ingredientinrecipe__amount"))
+            .order_by("recipe__ingredients__name")
         )
 
-        for ing in ingredients:
-            shopping_list.append(
-                f'{ing["recipe"]}: {ing["amount"]} {ing["measurement"]}'
-            )
-        shopping_list.append("\nПодсчёт в Foodgram")
-        shopping_list = "\n".join(shopping_list)
-        response = HttpResponse(
-            shopping_list, content_type="text.txt; charset=utf-8"
-        )
-        response["Content-Disposition"] = f"attachment; filename={filename}"
+        shopping_list = ["Список покупок:\n\n"]
+        for item in queryset:
+            name = item["recipe__ingredients__name"].capitalize()
+            measurement_unit = item["recipe__ingredients__measurement_unit"]
+            amount = item["recipe__ingredientinrecipe__amount__sum"]
+            shopping_list.append(f"{name} ({measurement_unit}) — {amount};\n")
+
+        response = HttpResponse(shopping_list)
+        response["Content-Type"] = "text/plain"
+        response[
+            "Content-Disposition"
+        ] = 'attachment; filename="shopping_cart.txt"'
         return response
