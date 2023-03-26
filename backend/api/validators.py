@@ -81,7 +81,7 @@ def tags_exist_validator(tags_ids: List[int or str], tag: "Tag") -> None:
     exists_tags = Tag.objects.filter(id__in=tags_ids)
 
     if len(exists_tags) != len(tags_ids):
-        raise ValidationError("Указанный тэг не существует.")
+        raise ValidationError("Указанный тег не существует.")
 
 
 def ingredients_validator(

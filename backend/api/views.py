@@ -5,9 +5,13 @@ from urllib.parse import unquote
 from api.mixins import AddDelViewMixin
 from api.paginators import PageLimitPagination
 from api.permissions import OwnerOrReadOnly
-from api.serializers import (IngredientSerializer, RecipeSerializer,
-                             ShortRecipeSerializer, SubscribeSerializer,
-                             TagSerializer)
+from api.serializers import (
+    IngredientSerializer,
+    RecipeSerializer,
+    ShortRecipeSerializer,
+    SubscribeSerializer,
+    TagSerializer,
+)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
@@ -189,7 +193,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
             shopping_list.append(
                 f'{ing["name"]}: {ing["amount"]} {ing["measurement"]}'
             )
-        shopping_list.append("\nПодсчёт в Foodgram")
+        shopping_list.append("\nВыгружено из Foodgram")
         shopping_list = "\n".join(shopping_list)
         response = HttpResponse(
             shopping_list, content_type="text.txt; charset=utf-8"

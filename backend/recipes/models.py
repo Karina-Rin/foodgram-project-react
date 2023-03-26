@@ -20,28 +20,28 @@ class Tag(models.Model):
     name = models.CharField(
         verbose_name="Название",
         max_length=max_legth,
-        help_text="Введите название тэга",
+        help_text="Введите название тега",
         unique=True,
     )
     color = models.CharField(
         verbose_name="HEX-код",
-        help_text="Введите HEX-код цвета тэга",
+        help_text="Введите HEX-код цвета тега",
         max_length=7,
         default="#FF0000",
         unique=True,
         db_index=False,
     )
     slug = models.CharField(
-        verbose_name="Слаг тэга",
-        help_text="Введите текстовый идентификатор тэга",
+        verbose_name="Слаг тега",
+        help_text="Введите текстовый идентификатор тега",
         max_length=max_legth,
         unique=True,
         db_index=False,
     )
 
     class Meta:
-        verbose_name = "Тэг"
-        verbose_name_plural = "Тэги"
+        verbose_name = "Тег"
+        verbose_name_plural = "Теги"
         ordering = ("name",)
 
     def __str__(self) -> str:
@@ -108,9 +108,9 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag,
-        verbose_name="Тэг",
+        verbose_name="Тег",
         related_name="recipes",
-        help_text="Выберите тэг рецепта.",
+        help_text="Выберите тег рецепта.",
     )
     image = models.ImageField(
         verbose_name="Изображение",
@@ -169,7 +169,7 @@ class AmountIngredient(models.Model):
     )
     ingredients = models.ForeignKey(
         Ingredient,
-        verbose_name="Связанные ингредиенты",
+        verbose_name="Ингредиенты",
         related_name="recipe",
         help_text="Добавить ингредиенты рецепта в корзину",
         on_delete=CASCADE,
