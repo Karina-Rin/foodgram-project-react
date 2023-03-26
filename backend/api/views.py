@@ -15,7 +15,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
-from rest_framework import status
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
@@ -89,7 +89,9 @@ class IngredientViewSet(ReadOnlyModelViewSet):
         return self.queryset
 
 
-class TagViewSet(ReadOnlyModelViewSet):
+class TagViewSet(
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
