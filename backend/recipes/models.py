@@ -104,7 +104,7 @@ class Recipe(models.Model):
         verbose_name="Ингредиенты для приготовления блюда по рецепту",
         related_name="recipes",
         help_text="Выберите ингредиенты рецепта",
-        through="recipes.AmountIngredient",
+        through="AmountIngredient",
     )
     tags = models.ManyToManyField(
         Tag,
