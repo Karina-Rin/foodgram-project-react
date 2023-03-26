@@ -171,7 +171,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
 
         for ing in ingredients:
             shopping_list.append(
-                f'{ing["name"]}: {ing["amount"]} {ing["measurement"]}'
+                f'{ing["recipe"]}: {ing["amount"]} {ing["measurement"]}'
             )
         shopping_list.append("\nПодсчёт в Foodgram")
         shopping_list = "\n".join(shopping_list)
