@@ -1,14 +1,17 @@
 from collections import OrderedDict
+from typing import TYPE_CHECKING
 
-from api.amount import create_ingredients_amounts
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
+
+if TYPE_CHECKING:
+    from recipes.models import Ingredient
 
 User = get_user_model()
 
@@ -129,6 +132,18 @@ class RecipeSerializer(ModelSerializer):
             "is_shopping_cart",
         )
 
+    def create_ingredients_amounts(self, ingredients, recipe):
+        AmountIngredient.objects.bulk_create(
+            [
+                AmountIngredient(
+                    ingredient=Ingredient.objects.get(id=ingredient["id"]),
+                    recipe=recipe,
+                    amount=ingredient["amount"],
+                )
+                for ingredient in ingredients
+            ],
+        )
+
     def get_ingredients(self, recipe: Recipe) -> QuerySet:
         return recipe.ingredients.values(
             "id", "name", "measurement_unit", amount=F("recipe__amount")
@@ -172,7 +187,7 @@ class RecipeSerializer(ModelSerializer):
         ingredients: dict[int, tuple] = validated_data.pop("ingredients")
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        create_ingredients_amounts(recipe, ingredients)
+        self.create_ingredients_amounts(recipe, ingredients)
         return recipe
 
     @atomic
@@ -190,7 +205,7 @@ class RecipeSerializer(ModelSerializer):
 
         if ingredients:
             recipe.ingredients.clear()
-            create_ingredients_amounts(recipe, ingredients)
+            self.create_ingredients_amounts(recipe, ingredients)
 
         recipe.save()
         return recipe
