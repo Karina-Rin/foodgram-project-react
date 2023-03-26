@@ -5,13 +5,9 @@ from urllib.parse import unquote
 from api.mixins import AddDelViewMixin
 from api.paginators import PageLimitPagination
 from api.permissions import OwnerOrReadOnly
-from api.serializers import (
-    IngredientSerializer,
-    RecipeSerializer,
-    ShortRecipeSerializer,
-    SubscribeSerializer,
-    TagSerializer,
-)
+from api.serializers import (IngredientSerializer, RecipeSerializer,
+                             ShortRecipeSerializer, SubscribeSerializer,
+                             TagSerializer)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
@@ -19,14 +15,8 @@ from django.db.models import Q, Sum
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import (
-    AmountIngredient,
-    Carts,
-    Favorites,
-    Ingredient,
-    Recipe,
-    Tag,
-)
+from recipes.models import (AmountIngredient, Carts, Favorites, Ingredient,
+                            Recipe, Tag)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
