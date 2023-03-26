@@ -11,7 +11,7 @@ from api.serializers import (IngredientSerializer, RecipeSerializer,
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models import Q, Sum
+from django.db.models import F, Q, Sum
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -162,8 +162,11 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
             AmountIngredient.objects.filter(
                 recipe__in_carts__user=request.user
             )
-            .values("name", measurement="recipe__measurement_unit")
-            .annotate(amount=Sum("recipe__amount"))
+            .values("name")
+            .annotate(
+                measurement=F("recipe__measurement_unit"),
+                amount=Sum("recipe__amount"),
+            )
         )
 
         for ing in ingredients:
