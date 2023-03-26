@@ -114,20 +114,20 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         is_favorited = self.request.query_params.get("is_favorited")
         if is_favorited == "1":
             favorited = Favorites.objects.filter(user=user)
-            queryset = queryset.filter(favoriterecipe__in=favorited)
+            queryset = queryset.filter(favorites__in=favorited)
         if is_favorited == "0":
             favorited = Favorites.objects.filter(user=user)
-            queryset = queryset.exclude(favoriterecipe__in=favorited)
+            queryset = queryset.exclude(favorites__in=favorited)
 
         is_in_shopping_cart = self.request.query_params.get(
             "is_in_shopping_cart"
         )
         if is_in_shopping_cart == "1":
             shopping_cart = Carts.objects.filter(user=user)
-            queryset = queryset.filter(shopping_cart__in=shopping_cart)
+            queryset = queryset.filter(carts__in=shopping_cart)
         if is_in_shopping_cart == "0":
             shopping_cart = Carts.objects.filter(user=user)
-            queryset = queryset.exclude(shopping_cart__in=shopping_cart)
+            queryset = queryset.exclude(carts__in=shopping_cart)
 
         tags = self.request.query_params.getlist("tags")
         if tags is not None:
