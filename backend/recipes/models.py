@@ -41,7 +41,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = "Тэг"
         verbose_name_plural = "Тэги"
-        ordering = ["name"]
+        ordering = ("name",)
 
 
 class Ingredient(models.Model):
@@ -59,7 +59,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
-        ordering = ["name"]
+        ordering = ("name",)
         constraints = (
             UniqueConstraint(
                 fields=("name", "measurement_unit"),
@@ -123,7 +123,7 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
-        ordering = ["-id"]
+        ordering = ("-pub_date",)
         constraints = (
             UniqueConstraint(
                 fields=("name", "author"),
@@ -159,7 +159,7 @@ class AmountIngredient(models.Model):
     class Meta:
         verbose_name = "Ингредиент из рецепта"
         verbose_name_plural = "Игредиенты из рецептов"
-        ordering = ["recipe"]
+        ordering = ("recipe",)
         constraints = (
             UniqueConstraint(
                 fields=(

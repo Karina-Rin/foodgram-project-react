@@ -102,7 +102,7 @@ class FavoriteAdmin(ModelAdmin):
 
 
 @register(ShoppingCart)
-class CartAdmin(ModelAdmin):
+class ShoppingCartAdmin(ModelAdmin):
     list_display = ("user", "recipe", "date_added")
     search_fields = ("user__username", "recipe__name")
 
