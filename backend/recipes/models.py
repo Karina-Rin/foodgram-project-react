@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import CASCADE, SET_NULL, DateTimeField, UniqueConstraint
+from PIL import Image
 from users.models import User
 
 max_legth = settings.MAX_LEGTH
@@ -43,6 +44,14 @@ class Tag(models.Model):
         verbose_name_plural = "Тэги"
         ordering = ("name",)
 
+    def __str__(self) -> str:
+        return f"{self.name} (цвет: {self.color})"
+
+    def clean(self) -> None:
+        self.name = self.name.strip().lower()
+        self.slug = self.slug.strip().lower()
+        return super().clean()
+
 
 class Ingredient(models.Model):
     name = models.CharField(
@@ -69,6 +78,11 @@ class Ingredient(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} {self.measurement_unit}"
+
+    def clean(self) -> None:
+        self.name = self.name.lower()
+        self.measurement_unit = self.measurement_unit.lower()
+        super().clean()
 
 
 class Recipe(models.Model):
@@ -132,20 +146,30 @@ class Recipe(models.Model):
         )
 
     def __str__(self) -> str:
-        return self.name
+        return f"{self.name}. Автор: {self.author.username}"
+
+    def clean(self) -> None:
+        self.name = self.name.capitalize()
+        super().clean()
+
+    def save(self, *args, **kwargs) -> None:
+        super().save(*args, **kwargs)
+        image = Image.open(self.image.path)
+        image = image.resize(recipe_image_size)
+        image.save(self.image.path)
 
 
 class AmountIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        verbose_name="Рецепт",
+        verbose_name="В каких рецептах",
         related_name="ingredient",
         help_text="Выберите рецепт",
         on_delete=CASCADE,
     )
     ingredients = models.ForeignKey(
         Ingredient,
-        verbose_name="Ингредиент",
+        verbose_name="Связанные ингредиенты",
         related_name="recipe",
         help_text="Добавить ингредиенты рецепта в корзину",
         on_delete=CASCADE,
@@ -170,11 +194,8 @@ class AmountIngredient(models.Model):
             ),
         )
 
-    def __str__(self):
-        return (
-            f"{self.ingredients.name} ({self.ingredients.measurement_unit})"
-            f" - {self.amount} "
-        )
+    def __str__(self) -> str:
+        return f"{self.amount} {self.ingredients}"
 
 
 class Favorites(models.Model):
@@ -188,7 +209,7 @@ class Favorites(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         verbose_name="Избранный рецепт",
-        related_name="favorites",
+        related_name="in_favorites",
         help_text="Выберите рецепт",
         on_delete=CASCADE,
     )
@@ -197,8 +218,8 @@ class Favorites(models.Model):
     )
 
     class Meta:
-        verbose_name = "Избранное"
-        verbose_name_plural = "Избранное"
+        verbose_name = "Избранный рецепт"
+        verbose_name_plural = "Избранные рецепты"
         constraints = (
             UniqueConstraint(
                 fields=(
@@ -213,19 +234,19 @@ class Favorites(models.Model):
         return f"{self.user} -> {self.recipe}"
 
 
-class ShoppingCart(models.Model):
+class Carts(models.Model):
     user = models.ForeignKey(
         User,
         verbose_name="Автор списка покупок",
-        related_name="shopping_cart",
+        related_name="carts",
         help_text="Выберите автора",
         on_delete=CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
-        verbose_name="Рецепт в списке покупок",
-        related_name="shopping_cart",
-        help_text="Выберите рецепт для добавления продуктов в корзину",
+        verbose_name="Рецепты в списке покупок",
+        related_name="in_carts",
+        help_text="Выберите рецепты для добавления продуктов в корзину",
         on_delete=CASCADE,
     )
     date_added = models.DateTimeField(
@@ -233,8 +254,8 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
-        verbose_name = "Корзина"
-        verbose_name_plural = "Корзина"
+        verbose_name = "Рецепт в списке покупок"
+        verbose_name_plural = "Рецепты в списке покупок"
         constraints = (
             UniqueConstraint(
                 fields=(
