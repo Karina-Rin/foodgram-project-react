@@ -162,7 +162,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
             AmountIngredient.objects.filter(
                 recipe__in_carts__user=request.user
             )
-            .values("name", measurement="ingredients_measurement_unit")
+            .values("name", measurement="recipe__measurement_unit")
             .annotate(amount=Sum("recipe__amount"))
         )
 
