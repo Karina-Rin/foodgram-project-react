@@ -193,4 +193,4 @@ class RecipeSerializer(ModelSerializer):
             create_ingredients_amounts(recipe, ingredients)
 
         recipe.save()
-        return
+        return recipe
