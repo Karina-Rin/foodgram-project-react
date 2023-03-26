@@ -187,7 +187,7 @@ class RecipeSerializer(ModelSerializer):
         ingredients: dict[int, tuple] = validated_data.pop("ingredients")
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        self.create_ingredients_amounts(recipe, ingredients)
+        self.create_ingredients_amounts(ingredients, recipe)
         return recipe
 
     @atomic
@@ -205,7 +205,7 @@ class RecipeSerializer(ModelSerializer):
 
         if ingredients:
             recipe.ingredients.clear()
-            self.create_ingredients_amounts(recipe, ingredients)
+            self.create_ingredients_amounts(ingredients, recipe)
 
         recipe.save()
         return recipe

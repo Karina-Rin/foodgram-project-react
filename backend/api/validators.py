@@ -14,7 +14,7 @@ class OneOfTwoValidator:
     first_regex = "[^а-яёА-ЯЁ]+"
     second_regex = "[^a-zA-Z]+"
     field = "Переданное значение"
-    message = "<%s> на разных языках либо содержит не только буквы."
+    message = "<%s> на разных языках или содержит не только буквы."
 
     def __init__(
         self,
