@@ -159,7 +159,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
                 "recipe__ingredients__name",
                 "recipe__ingredients__measurement_unit",
             )
-            .annotate(Sum("recipe__ingredientinrecipe__amount"))
+            .annotate(Sum("recipe__amountingredient__amount"))
             .order_by("recipe__ingredients__name")
         )
 
@@ -167,7 +167,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         for item in queryset:
             name = item["recipe__ingredients__name"].capitalize()
             measurement_unit = item["recipe__ingredients__measurement_unit"]
-            amount = item["recipe__ingredientinrecipe__amount__sum"]
+            amount = item["recipe__amountingredient__amount__sum"]
             shopping_list.append(f"{name} ({measurement_unit}) — {amount};\n")
 
         response = HttpResponse(shopping_list)
