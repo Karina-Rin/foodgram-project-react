@@ -61,6 +61,7 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
         serializer = SubscribeSerializer(pages, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(methods=("get",), detail=False)
     def author_detail(self, request, author_id):
         author = User.objects.get(id=author_id)
         recipes = Recipe.objects.filter(author=author)
@@ -141,7 +142,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         if author_id is not None:
             queryset = queryset.filter(author_id=author_id).all()
 
-        is_in_cart: str = self.request.query_params.get("is_favorited")
+        is_in_cart: str = self.request.query_params.get("is_in_shopping_cart")
         if is_in_cart in symbol_true_search:
             queryset = queryset.filter(in_carts__user=self.request.user)
         elif is_in_cart in symbol_false_search:
