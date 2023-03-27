@@ -122,7 +122,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     add_serializer = ShortRecipeSerializer
 
     def get_queryset(self):
-        queryset = Recipe.objects.all()
+        queryset = self.queryset
 
         if not self.request.query_params:
             return queryset
@@ -138,9 +138,9 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         if self.request.user.is_anonymous:
             return queryset
 
-        author_id = self.request.query_params.get("author")
-        if author_id is not None:
-            queryset = queryset.filter(author_id=author_id).all()
+        author: str = self.request.query_params.get("author")
+        if author:
+            queryset = queryset.filter(author=author)
 
         is_in_cart: str = self.request.query_params.get("is_in_shopping_cart")
         if is_in_cart in symbol_true_search:
