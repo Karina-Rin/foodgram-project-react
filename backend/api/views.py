@@ -134,9 +134,24 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
             )
             queryset = queryset.filter(id__in=recipes)
 
+        if self.request.user.is_anonymous:
+            return queryset
+
         author_id = self.request.query_params.get("author")
         if author_id is not None:
             queryset = queryset.filter(author_id=author_id).all()
+
+        is_in_cart: str = self.request.query_params.get("is_favorited")
+        if is_in_cart in symbol_true_search:
+            queryset = queryset.filter(in_carts__user=self.request.user)
+        elif is_in_cart in symbol_false_search:
+            queryset = queryset.exclude(in_carts__user=self.request.user)
+
+        is_favorit: str = self.request.query_params.get("is_favorited")
+        if is_favorit in symbol_true_search:
+            queryset = queryset.filter(in_favorites__user=self.request.user)
+        if is_favorit in symbol_false_search:
+            queryset = queryset.exclude(in_favorites__user=self.request.user)
 
         return queryset
 
