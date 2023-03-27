@@ -105,7 +105,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     add_serializer = ShortRecipeSerializer
 
     def get_queryset(self):
-        queryset = Recipe.objects.all()
+        queryset = self.queryset
 
         if not self.request.query_params:
             return queryset
