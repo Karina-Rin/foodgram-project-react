@@ -5,9 +5,9 @@ from urllib.parse import unquote
 from api.mixins import AddDelViewMixin
 from api.paginators import PageLimitPagination
 from api.permissions import OwnerOrReadOnly
-from api.serializers import (CartSerializer, IngredientSerializer,
-                             RecipeSerializer, ShortRecipeSerializer,
-                             SubscribeSerializer, TagSerializer)
+from api.serializers import (IngredientSerializer, RecipeSerializer,
+                             ShortRecipeSerializer, SubscribeSerializer,
+                             TagSerializer)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
@@ -194,28 +194,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         permission_classes=(IsAuthenticated,),
     )
     def shopping_cart(self, request: WSGIRequest, pk: int or str) -> Response:
-        if request.method == "POST":
-            return self.add_to(Carts, request.user, pk)
-        else:
-            return self.delete_from(Carts, request.user, pk)
-
-    def get(self, request, recipe_id):
-        user = request.user
-        data = {"recipe": recipe_id, "user": user.id}
-        context = {"request": request}
-        serializer = CartSerializer(data=data, context=context)
-        if not serializer.is_valid():
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, recipe_id):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        Carts.objects.filter(user=user, recipe=recipe).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return self._add_del_obj(pk, Carts, Q(recipe__id=pk))
 
     @action(methods=("get",), detail=False)
     def download_shopping_cart(self, request: WSGIRequest) -> Response:
