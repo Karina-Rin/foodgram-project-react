@@ -106,28 +106,9 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
-        user = self.request.user
 
         if not self.request.query_params:
             return queryset
-
-        is_favorited = self.request.query_params.get("is_favorited")
-        if is_favorited == "1":
-            favorited = Favorites.objects.filter(user=user)
-            queryset = queryset.filter(favorites__in=favorited)
-        if is_favorited == "0":
-            favorited = Favorites.objects.filter(user=user)
-            queryset = queryset.exclude(favorites__in=favorited)
-
-        is_in_shopping_cart = self.request.query_params.get(
-            "is_in_shopping_cart"
-        )
-        if is_in_shopping_cart == "1":
-            shopping_cart = Carts.objects.filter(user=user)
-            queryset = queryset.filter(carts__in=shopping_cart)
-        if is_in_shopping_cart == "0":
-            shopping_cart = Carts.objects.filter(user=user)
-            queryset = queryset.exclude(carts__in=shopping_cart)
 
         tags = self.request.query_params.getlist("tags")
         if tags is not None:
@@ -137,10 +118,24 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
             )
             queryset = queryset.filter(id__in=recipes)
 
+        if self.request.user.is_anonymous:
+            return queryset
+
         author_id = self.request.query_params.get("author")
         if author_id is not None:
             queryset = queryset.filter(author_id=author_id).all()
 
+        is_in_cart: str = self.request.query_params.get("is_favorited")
+        if is_in_cart in symbol_true_search:
+            queryset = queryset.filter(in_carts__user=self.request.user)
+        elif is_in_cart in symbol_false_search:
+            queryset = queryset.exclude(in_carts__user=self.request.user)
+
+        is_favorit: str = self.request.query_params.get("is_favorited")
+        if is_favorit in symbol_true_search:
+            queryset = queryset.filter(in_favorites__user=self.request.user)
+        if is_favorit in symbol_false_search:
+            queryset = queryset.exclude(in_favorites__user=self.request.user)
         return queryset
 
     def add_to(self, model, user, pk):
@@ -186,7 +181,13 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         else:
             return self.delete_from(Carts, request.user, pk)
 
-    @action(methods=("get",), detail=False)
+    @action(
+        detail=False,
+        methods=["get"],
+        url_name="download_shopping_cart",
+        url_path="download_shopping_cart",
+        permission_classes=(IsAuthenticated,),
+    )
     def download_shopping_cart(self, request: WSGIRequest) -> Response:
         user = self.request.user
         if not user.carts.exists():
