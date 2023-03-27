@@ -5,18 +5,18 @@ from urllib.parse import unquote
 from api.mixins import AddDelViewMixin
 from api.paginators import PageLimitPagination
 from api.permissions import OwnerOrReadOnly
-from api.serializers import (IngredientSerializer, RecipeSerializer,
-                             ShortRecipeSerializer, SubscribeSerializer,
-                             TagSerializer)
+from api.serializers import (CartSerializer, IngredientSerializer,
+                             RecipeSerializer, ShortRecipeSerializer,
+                             SubscribeSerializer, TagSerializer)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import F, Q, Sum
 from django.http.response import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
@@ -65,15 +65,15 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
         author = User.objects.get(id=author_id)
         recipes = Recipe.objects.filter(author=author)
 
-        show_all = False
         if len(recipes) > 3:
+            show_more = True
             recipes = recipes[:3]
-            show_all = True
-
+        else:
+            show_more = False
         context = {
             "author": author,
             "recipes": recipes,
-            "show_more": not show_all,
+            "show_more": show_more,
         }
         return render(request, "author_detail.html", context)
 
@@ -155,6 +155,27 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
 
         return queryset
 
+    def add_to(self, model, user, pk):
+        if model.objects.filter(user=user, recipe__id=pk).exists():
+            return Response(
+                {"errors": "Рецепт уже добавлен!"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        recipe = get_object_or_404(Recipe, id=pk)
+        model.objects.create(user=user, recipe=recipe)
+        serializer = ShortRecipeSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete_from(self, model, user, pk):
+        obj = model.objects.filter(user=user, recipe__id=pk)
+        if obj.exists():
+            obj.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"errors": "Рецепт уже удален!"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     @action(
         methods=action_methods,
         detail=True,
@@ -171,11 +192,29 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         detail=True,
         permission_classes=(IsAuthenticated,),
     )
-    def shopping_cart(self, request, pk):
+    def shopping_cart(self, request: WSGIRequest, pk: int or str) -> Response:
         if request.method == "POST":
             return self.add_to(Carts, request.user, pk)
         else:
             return self.delete_from(Carts, request.user, pk)
+
+    def get(self, request, recipe_id):
+        user = request.user
+        data = {"recipe": recipe_id, "user": user.id}
+        context = {"request": request}
+        serializer = CartSerializer(data=data, context=context)
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, recipe_id):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        Carts.objects.filter(user=user, recipe=recipe).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=("get",), detail=False)
     def download_shopping_cart(self, request: WSGIRequest) -> Response:

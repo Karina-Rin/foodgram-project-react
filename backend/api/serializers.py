@@ -7,8 +7,10 @@ from django.db.models import F
 from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
+from recipes.models import (AmountIngredient, Carts, Favorites, Ingredient,
+                            Recipe, Tag)
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.validators import UniqueTogetherValidator
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient
@@ -211,3 +213,54 @@ class RecipeSerializer(ModelSerializer):
 
         recipe.save()
         return recipe
+
+
+class RecipeImageSerializer(ModelSerializer):
+    image = SerializerMethodField()
+
+    class Meta:
+        model = Recipe
+        fields = ("id", "name", "image", "cooking_time")
+
+    def get_image(self, obj):
+        request = self.context.get("request")
+        image_url = obj.image.url
+        return request.build_absolute_uri(image_url)
+
+
+class FavoriteSerializer(ModelSerializer):
+    class Meta:
+        fields = ("user", "recipe")
+        model = Favorites
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Favorites.objects.all(),
+                fields=("user", "recipe"),
+                message="Рецепт уже добавлен в избранное",
+            )
+        ]
+
+    def to_representation(self, instance):
+        requset = self.context.get("request")
+        return RecipeImageSerializer(
+            instance.recipe, context={"request": requset}
+        ).data
+
+
+class CartSerializer(FavoriteSerializer):
+    class Meta(FavoriteSerializer.Meta):
+        model = Carts
+        fields = "__all__"
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Carts.objects.all(),
+                fields=("user", "recipe"),
+                message="Рецепт уже добавлен в список покупок",
+            )
+        ]
+
+    def to_representation(self, instance):
+        requset = self.context.get("request")
+        return RecipeImageSerializer(
+            instance.recipe, context={"request": requset}
+        ).data
