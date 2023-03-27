@@ -5,9 +5,9 @@ from urllib.parse import unquote
 from api.mixins import AddDelViewMixin
 from api.paginators import PageLimitPagination
 from api.permissions import OwnerOrReadOnly
-from api.serializers import (CartSerializer, IngredientSerializer,
-                             RecipeSerializer, ShortRecipeSerializer,
-                             SubscribeSerializer, TagSerializer)
+from api.serializers import (IngredientSerializer, RecipeSerializer,
+                             ShortRecipeSerializer, SubscribeSerializer,
+                             TagSerializer)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
@@ -42,23 +42,6 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
     add_serializer = SubscribeSerializer
     permission_classes = (DjangoModelPermissions,)
 
-    @action(methods=("get",), detail=False)
-    def author_detail(self, request, author_id):
-        author = User.objects.get(id=author_id)
-        recipes = Recipe.objects.filter(author=author)
-
-        if len(recipes) > 3:
-            show_more = True
-            recipes = recipes[:3]
-        else:
-            show_more = False
-        context = {
-            "author": author,
-            "recipes": recipes,
-            "show_more": show_more,
-        }
-        return render(request, "author_detail.html", context)
-
     @action(
         methods=action_methods,
         detail=True,
@@ -77,6 +60,21 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
         )
         serializer = SubscribeSerializer(pages, many=True)
         return self.get_paginated_response(serializer.data)
+
+    def author_detail(self, request, author_id):
+        author = User.objects.get(id=author_id)
+        recipes = Recipe.objects.filter(author=author)
+        show_more = False
+        if len(recipes) > 3:
+            show_more = True
+            recipes = recipes[:3]
+        context = {
+            "author": author,
+            "recipes": recipes,
+            "show_more": show_more,
+            "remaining_count": len(recipes) - 3,
+        }
+        return render(request, "author_detail.html", context)
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
@@ -141,25 +139,6 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
 
         return queryset
 
-    @action(
-        methods=action_methods,
-        detail=True,
-        permission_classes=(IsAuthenticated,),
-    )
-    def favorite(self, request, pk):
-        if request.method == "POST":
-            return self.add_to(Favorites, request.user, pk)
-        else:
-            return self.delete_from(Favorites, request.user, pk)
-
-    @action(
-        methods=action_methods,
-        detail=True,
-        permission_classes=(IsAuthenticated,),
-    )
-    def shopping_cart(self, request, pk):
-        return self.post_or_delete(request, Carts, CartSerializer, pk)
-
     def add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
@@ -180,6 +159,28 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
             {"errors": "Рецепт уже удален!"},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    @action(
+        methods=action_methods,
+        detail=True,
+        permission_classes=(IsAuthenticated,),
+    )
+    def favorite(self, request, pk):
+        if request.method == "POST":
+            return self.add_to(Favorites, request.user, pk)
+        else:
+            return self.delete_from(Favorites, request.user, pk)
+
+    @action(
+        methods=action_methods,
+        detail=True,
+        permission_classes=(IsAuthenticated,),
+    )
+    def shopping_cart(self, request, pk):
+        if request.method == "POST":
+            return self.add_to(Carts, request.user, pk)
+        else:
+            return self.delete_from(Carts, request.user, pk)
 
     @action(methods=("get",), detail=False)
     def download_shopping_cart(self, request: WSGIRequest) -> Response:
