@@ -11,7 +11,7 @@ from api.serializers import (IngredientSerializer, RecipeSerializer,
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models import F, Q, Sum
+from django.db.models import F, Q, QuerySet, Sum
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -104,7 +104,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     pagination_class = PageLimitPagination
     add_serializer = ShortRecipeSerializer
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Recipe]:
         queryset = self.queryset
 
         if not self.request.query_params:
