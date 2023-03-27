@@ -194,7 +194,10 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         permission_classes=(IsAuthenticated,),
     )
     def shopping_cart(self, request: WSGIRequest, pk: int or str) -> Response:
-        return self._add_del_obj(pk, Carts, Q(recipe__id=pk))
+        if request.method == "POST":
+            return self.add_to(Carts, request.user, pk)
+        else:
+            return self.delete_from(Carts, request.user, pk)
 
     @action(methods=("get",), detail=False)
     def download_shopping_cart(self, request: WSGIRequest) -> Response:
