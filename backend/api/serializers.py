@@ -7,7 +7,7 @@ from django.db.models import F
 from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
+from recipes.models import AmountIngredient, Carts, Ingredient, Recipe, Tag
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 if TYPE_CHECKING:
@@ -209,3 +209,21 @@ class RecipeSerializer(ModelSerializer):
 
         recipe.save()
         return recipe
+
+
+class CartSerializer(ModelSerializer):
+    class Meta:
+        model = Carts
+        fields = ("user", "recipe")
+
+    def validate(self, data):
+        if Carts.objects.filter(
+            user=self.context["request"].user, recipe=data["recipe"]
+        ):
+            raise ValidationError("Уже добавлен")
+        return data
+
+    def to_representation(self, instance):
+        return RecipeSerializer(
+            instance.recipe, context={"request": self.context.get("request")}
+        ).data
