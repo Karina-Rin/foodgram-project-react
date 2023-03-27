@@ -5,13 +5,9 @@ from urllib.parse import unquote
 from api.mixins import AddDelViewMixin
 from api.paginators import PageLimitPagination
 from api.permissions import OwnerOrReadOnly
-from api.serializers import (
-    IngredientSerializer,
-    RecipeSerializer,
-    ShortRecipeSerializer,
-    SubscribeSerializer,
-    TagSerializer,
-)
+from api.serializers import (IngredientSerializer, RecipeSerializer,
+                             ShortRecipeSerializer, SubscribeSerializer,
+                             TagSerializer)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
@@ -65,7 +61,7 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
         serializer = SubscribeSerializer(pages, many=True)
         return self.get_paginated_response(serializer.data)
 
-    def author_detail(request, author_id):
+    def author_detail(self, request, author_id):
         author = User.objects.get(id=author_id)
         recipes = Recipe.objects.filter(author=author)
 
