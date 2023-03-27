@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import F, Q, Sum
 from django.http.response import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
 from rest_framework import mixins, status, viewsets
@@ -23,7 +23,7 @@ from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from users.models import Subscribe
+from users.models import Subscribe, User
 
 date_time_format = settings.DATE_TIME_FORMAT
 action_methods = settings.ACTION_METHODS
@@ -60,6 +60,23 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
         )
         serializer = SubscribeSerializer(pages, many=True)
         return self.get_paginated_response(serializer.data)
+
+    def author_detail(request, author_id):
+        author = User.objects.get(id=author_id)
+        recipes = Recipe.objects.filter(author=author)
+
+        if len(recipes) > 3:
+            show_more = True
+            recipes = recipes[:3]
+        else:
+            show_more = False
+
+        context = {
+            "author": author,
+            "recipes": recipes,
+            "show_more": show_more,
+        }
+        return render(request, "author_detail.html", context)
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
