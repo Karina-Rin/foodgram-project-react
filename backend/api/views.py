@@ -125,7 +125,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         if author_id is not None:
             queryset = queryset.filter(author_id=author_id).all()
 
-        is_in_cart: str = self.request.query_params.get("is_favorited")
+        is_in_cart: str = self.request.query_params.get("is_in_shopping_cart")
         if is_in_cart in symbol_true_search:
             queryset = queryset.filter(in_carts__user=self.request.user)
         elif is_in_cart in symbol_false_search:
@@ -164,30 +164,24 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         detail=True,
         permission_classes=(IsAuthenticated,),
     )
-    def favorite(self, request, pk):
+    def favorite(self, request: WSGIRequest, pk: int or str) -> Response:
         if request.method == "POST":
-            return self.add_to(Favorites, request.user, pk)
+            return self.add_to(Favorites, request.user, Q(recipe__id=pk))
         else:
-            return self.delete_from(Favorites, request.user, pk)
+            return self.delete_from(Favorites, request.user, Q(recipe__id=pk))
 
     @action(
         methods=action_methods,
         detail=True,
         permission_classes=(IsAuthenticated,),
     )
-    def shopping_cart(self, request, pk):
+    def shopping_cart(self, request: WSGIRequest, pk: int or str) -> Response:
         if request.method == "POST":
-            return self.add_to(Carts, request.user, pk)
+            return self.add_to(Carts, request.user, Q(recipe__id=pk))
         else:
-            return self.delete_from(Carts, request.user, pk)
+            return self.delete_from(Carts, request.user, Q(recipe__id=pk))
 
-    @action(
-        detail=False,
-        methods=["get"],
-        url_name="download_shopping_cart",
-        url_path="download_shopping_cart",
-        permission_classes=(IsAuthenticated,),
-    )
+    @action(methods=("get",), detail=False)
     def download_shopping_cart(self, request: WSGIRequest) -> Response:
         user = self.request.user
         if not user.carts.exists():
