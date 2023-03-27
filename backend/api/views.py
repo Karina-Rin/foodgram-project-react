@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import F, Q, Sum
 from django.http.response import HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
 from rest_framework import mixins, status, viewsets
@@ -60,21 +60,6 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
         )
         serializer = SubscribeSerializer(pages, many=True)
         return self.get_paginated_response(serializer.data)
-
-    def author_detail(self, request, author_id):
-        author = User.objects.get(id=author_id)
-        recipes = Recipe.objects.filter(author=author)
-        show_more = False
-        if len(recipes) > 3:
-            show_more = True
-            recipes = recipes[:3]
-        context = {
-            "author": author,
-            "recipes": recipes,
-            "show_more": show_more,
-            "remaining_count": len(recipes) - 3,
-        }
-        return render(request, "author_detail.html", context)
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
