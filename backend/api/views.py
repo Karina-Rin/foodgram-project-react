@@ -23,7 +23,7 @@ from rest_framework.response import Response
 from rest_framework.routers import APIRootView
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from users.models import Subscribe, User
+from users.models import Subscribe
 
 date_time_format = settings.DATE_TIME_FORMAT
 action_methods = settings.ACTION_METHODS
@@ -61,6 +61,7 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
         serializer = SubscribeSerializer(pages, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(methods=("get",), detail=False)
     def author_detail(self, request, author_id):
         author = User.objects.get(id=author_id)
         recipes = Recipe.objects.filter(author=author)
@@ -134,24 +135,9 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
             )
             queryset = queryset.filter(id__in=recipes)
 
-        if self.request.user.is_anonymous:
-            return queryset
-
         author_id = self.request.query_params.get("author")
         if author_id is not None:
             queryset = queryset.filter(author_id=author_id).all()
-
-        is_in_cart: str = self.request.query_params.get("is_favorited")
-        if is_in_cart in symbol_true_search:
-            queryset = queryset.filter(in_carts__user=self.request.user)
-        elif is_in_cart in symbol_false_search:
-            queryset = queryset.exclude(in_carts__user=self.request.user)
-
-        is_favorit: str = self.request.query_params.get("is_favorited")
-        if is_favorit in symbol_true_search:
-            queryset = queryset.filter(in_favorites__user=self.request.user)
-        if is_favorit in symbol_false_search:
-            queryset = queryset.exclude(in_favorites__user=self.request.user)
 
         return queryset
 

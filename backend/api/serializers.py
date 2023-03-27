@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from typing import TYPE_CHECKING
 
-from api.validators import ingredients_validator, tags_exist_validator
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.models import F
@@ -18,12 +17,10 @@ User = get_user_model()
 
 
 class ShortRecipeSerializer(ModelSerializer):
-    image = Base64ImageField()
-
     class Meta:
         model = Recipe
         fields = "id", "name", "image", "cooking_time"
-        read_only_fields = ("id", "name", "image", "cooking_time")
+        read_only_fields = ("__all__",)
 
 
 class UserSerializer(ModelSerializer):
@@ -50,9 +47,6 @@ class UserSerializer(ModelSerializer):
             return False
 
         return user.subscriptions.filter(author=obj).exists()
-
-    def get_recipes_count(self, obj: User) -> int:
-        return obj.recipes.count()
 
     def create(self, validated_data: dict) -> User:
         user = User(
@@ -177,9 +171,6 @@ class RecipeSerializer(ModelSerializer):
 
         if not tags_ids or not ingredients:
             raise ValidationError("Недостаточно данных.")
-
-        tags_exist_validator(tags_ids, Tag)
-        ingredients = ingredients_validator(ingredients, Ingredient)
 
         data.update(
             {
