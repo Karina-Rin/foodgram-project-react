@@ -156,7 +156,7 @@ class RecipeSerializer(ModelSerializer):
             ],
         )
 
-    def get_ingredients(self, recipe: Recipe) -> QuerySet[dict]:
+    def get_ingredients(self, recipe: Recipe) -> QuerySet:
         return recipe.ingredients.values(
             "id", "name", "measurement_unit", amount=F("recipe__amount")
         )
