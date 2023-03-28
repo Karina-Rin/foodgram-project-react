@@ -102,11 +102,14 @@ class SubscribeSerializer(UserSerializer):
         )
         read_only_fields = ("__all__",)
 
-    def get_is_subscribed(*args) -> bool:
-        return True
+    def get_remaining_recipes_count(self, obj: User) -> int:
+        count = obj.recipes.count() - 3 if obj.recipes.count() > 3 else 0
+        return count
 
-    def get_recipes_count(self, obj: User) -> int:
-        return obj.recipes.count()
+    def get_recipes(self, obj: User):
+        recipes = obj.recipes.all()[:3]
+        serializer = ShortRecipeSerializer(recipes, many=True)
+        return serializer.data
 
 
 class TagSerializer(ModelSerializer):
