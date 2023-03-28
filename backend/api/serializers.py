@@ -8,7 +8,8 @@ from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.serializers import (ListSerializer, ModelSerializer,
+                                        SerializerMethodField)
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient
@@ -16,11 +17,22 @@ if TYPE_CHECKING:
 User = get_user_model()
 
 
+class FilterRecipesLimitSerializer(ListSerializer):
+    def to_representation(self, data):
+        if "recipes_limit" not in self.context.get("request").query_params:
+            return super().to_representation(data)
+        recipes_limit = int(
+            self.context.get("request").query_params.get("recipes_limit")
+        )
+        return super().to_representation(data)[:recipes_limit]
+
+
 class ShortRecipeSerializer(ModelSerializer):
     class Meta:
         model = Recipe
         fields = "id", "name", "image", "cooking_time"
         read_only_fields = ("__all__",)
+        list_serializer_class = FilterRecipesLimitSerializer
 
 
 class UserSerializer(ModelSerializer):
@@ -144,7 +156,7 @@ class RecipeSerializer(ModelSerializer):
             ],
         )
 
-    def get_ingredients(self, recipe: Recipe) -> QuerySet:
+    def get_ingredients(self, recipe: Recipe) -> QuerySet[dict]:
         return recipe.ingredients.values(
             "id", "name", "measurement_unit", amount=F("recipe__amount")
         )

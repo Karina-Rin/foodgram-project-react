@@ -11,7 +11,7 @@ from api.serializers import (IngredientSerializer, RecipeSerializer,
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models import F, Q, QuerySet, Sum
+from django.db.models import F, Q, Sum
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -104,8 +104,8 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     pagination_class = PageLimitPagination
     add_serializer = ShortRecipeSerializer
 
-    def get_queryset(self) -> QuerySet[Recipe]:
-        queryset = self.queryset
+    def get_queryset(self):
+        queryset = Recipe.objects.all()
 
         if not self.request.query_params:
             return queryset
@@ -118,24 +118,10 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
             )
             queryset = queryset.filter(id__in=recipes)
 
-        if self.request.user.is_anonymous:
-            return queryset
-
         author_id = self.request.query_params.get("author")
         if author_id is not None:
             queryset = queryset.filter(author_id=author_id).all()
 
-        is_in_cart: str = self.request.query_params.get("is_in_shopping_cart")
-        if is_in_cart in symbol_true_search:
-            queryset = queryset.filter(in_carts__user=self.request.user)
-        elif is_in_cart in symbol_false_search:
-            queryset = queryset.exclude(in_carts__user=self.request.user)
-
-        is_favorit: str = self.request.query_params.get("is_favorited")
-        if is_favorit in symbol_true_search:
-            queryset = queryset.filter(in_favorites__user=self.request.user)
-        if is_favorit in symbol_false_search:
-            queryset = queryset.exclude(in_favorites__user=self.request.user)
         return queryset
 
     def add_to(self, model, user, pk):
@@ -164,22 +150,22 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         detail=True,
         permission_classes=(IsAuthenticated,),
     )
-    def favorite(self, request: WSGIRequest, pk: int or str) -> Response:
+    def favorite(self, request, pk):
         if request.method == "POST":
-            return self.add_to(Favorites, request.user, Q(recipe__id=pk))
+            return self.add_to(Favorites, request.user, pk)
         else:
-            return self.delete_from(Favorites, request.user, Q(recipe__id=pk))
+            return self.delete_from(Favorites, request.user, pk)
 
     @action(
         methods=action_methods,
         detail=True,
         permission_classes=(IsAuthenticated,),
     )
-    def shopping_cart(self, request: WSGIRequest, pk: int or str) -> Response:
+    def shopping_cart(self, request, pk):
         if request.method == "POST":
-            return self.add_to(Carts, request.user, Q(recipe__id=pk))
+            return self.add_to(Carts, request.user, pk)
         else:
-            return self.delete_from(Carts, request.user, Q(recipe__id=pk))
+            return self.delete_from(Carts, request.user, pk)
 
     @action(methods=("get",), detail=False)
     def download_shopping_cart(self, request: WSGIRequest) -> Response:
