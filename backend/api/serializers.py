@@ -36,7 +36,7 @@ class ShortRecipeSerializer(ModelSerializer):
     class Meta:
         model = Recipe
         fields = ["id", "name", "image", "cooking_time", "remaining_count"]
-        read_only_fields = "__all__"
+        read_only_fields = ("id", "name", "image", "cooking_time")
         list_serializer_class = FilterRecipesLimitSerializer
 
     def get_remaining_count(self, obj):
