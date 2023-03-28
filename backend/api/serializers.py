@@ -8,7 +8,8 @@ from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.serializers import (ListSerializer, ModelSerializer,
+                                        SerializerMethodField)
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient
@@ -16,28 +17,34 @@ if TYPE_CHECKING:
 User = get_user_model()
 
 
-class ShortRecipeSerializer(ModelSerializer):
-    more_recipes_message = SerializerMethodField()
-
-    def get_more_recipes_message(self, recipe):
-        author_recipes_count = Recipe.objects.filter(
-            author=recipe.author
-        ).count()
-        if author_recipes_count > 3:
-            return f"Ещё {author_recipes_count - 3} рецептов..."
+class FilterRecipesLimitSerializer(ListSerializer):
+    def to_representation(self, data):
+        if not self.context.get("request"):
+            return super().to_representation(data)
+        if "recipes_limit" not in self.context["request"].query_params:
+            recipes_limit = 3
         else:
-            return ""
+            recipes_limit = int(
+                self.context["request"].query_params.get("recipes_limit")
+            )
+        return super().to_representation(data[:recipes_limit])
+
+
+class ShortRecipeSerializer(ModelSerializer):
+    remaining_count = SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = (
-            "id",
-            "name",
-            "image",
-            "cooking_time",
-            "more_recipes_message",
-        )
-        read_only_fields = ("__all__",)
+        fields = ["id", "name", "image", "cooking_time", "remaining_count"]
+        read_only_fields = "__all__"
+        list_serializer_class = FilterRecipesLimitSerializer
+
+    def get_remaining_count(self, obj):
+        author_recipes_count = Recipe.objects.filter(author=obj.author).count()
+        remaining = author_recipes_count - 3
+        if remaining <= 0:
+            return ""
+        return f"Ещё {remaining} рецептов..."
 
 
 class UserSerializer(ModelSerializer):
