@@ -16,7 +16,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
-from rest_framework import mixins, status, viewsets
+from rest_framework import generics, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
@@ -95,6 +95,19 @@ class TagViewSet(
 ):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+
+
+class RecipeListView(generics.ListAPIView):
+    serializer_class = ShortRecipeSerializer
+    queryset = Recipe.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        recipe_limit = int(request.query_params.get("recipes_limit", 0))
+        if recipe_limit and len(self.queryset) > recipe_limit:
+            count = len(self.queryset) - recipe_limit
+            response.data["hidden_count"] = count
+        return response
 
 
 class RecipeViewSet(ModelViewSet, AddDelViewMixin):
