@@ -8,8 +8,7 @@ from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
-from rest_framework.serializers import (ListSerializer, ModelSerializer,
-                                        SerializerMethodField)
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient
@@ -17,26 +16,28 @@ if TYPE_CHECKING:
 User = get_user_model()
 
 
-class FilterRecipesLimitSerializer(ListSerializer):
-    def to_representation(self, data):
-        if not self.context.get("request"):
-            return super().to_representation(data)
-
-        if "recipes_limit" not in self.context["request"].query_params:
-            return super().to_representation(data)
-
-        recipes_limit = int(
-            self.context["request"].query_params.get("recipes_limit")
-        )
-        return super().to_representation(data[:recipes_limit])
-
-
 class ShortRecipeSerializer(ModelSerializer):
+    more_recipes_message = SerializerMethodField()
+
+    def get_more_recipes_message(self, recipe):
+        author_recipes_count = Recipe.objects.filter(
+            author=recipe.author
+        ).count()
+        if author_recipes_count > 3:
+            return f"Ещё {author_recipes_count - 3} рецептов..."
+        else:
+            return ""
+
     class Meta:
         model = Recipe
-        fields = "id", "name", "image", "cooking_time"
+        fields = (
+            "id",
+            "name",
+            "image",
+            "cooking_time",
+            "more_recipes_message",
+        )
         read_only_fields = ("__all__",)
-        list_serializer_class = FilterRecipesLimitSerializer
 
 
 class UserSerializer(ModelSerializer):
