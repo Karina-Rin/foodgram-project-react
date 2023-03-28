@@ -65,7 +65,10 @@ class UserSerializer(ModelSerializer):
         read_only_fields = ("is_subscribed",)
 
     def get_is_subscribed(self, obj: User):
-        user = self.context.get("view").request.user
+        view = self.context.get("view")
+        if view is None:
+            return False
+        user = view.request.user
         if user.is_anonymous:
             return False
         return user.subscriptions.filter(author=obj).exists()
