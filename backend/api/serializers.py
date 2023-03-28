@@ -87,12 +87,12 @@ class UserSerializer(ModelSerializer):
         return user
 
 
-class SubscribeSerializer(UserSerializer):
-    recipes = ShortRecipeSerializer(many=True, read_only=True)
+class SubscribeSerializer(ModelSerializer):
+    recipes = ShortRecipeSerializer()
     recipes_count = SerializerMethodField()
 
     class Meta:
-        model = User
+        model = Subscribe
         fields = (
             "email",
             "id",
@@ -103,7 +103,6 @@ class SubscribeSerializer(UserSerializer):
             "recipes",
             "recipes_count",
         )
-        read_only_fields = ("__all__",)
 
     def get_is_subscribed(self, obj):
         return Subscribe.objects.filter(
