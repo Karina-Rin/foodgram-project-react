@@ -5,9 +5,13 @@ from urllib.parse import unquote
 from api.mixins import AddDelViewMixin
 from api.paginators import PageLimitPagination
 from api.permissions import OwnerOrReadOnly
-from api.serializers import (IngredientSerializer, RecipeSerializer,
-                             ShortRecipeSerializer, SubscribeSerializer,
-                             TagSerializer)
+from api.serializers import (
+    IngredientSerializer,
+    RecipeSerializer,
+    ShortRecipeSerializer,
+    SubscribeSerializer,
+    TagSerializer,
+)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
@@ -127,7 +131,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     def add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
-                {"errors": "Рецепт уже добавлен!"},
+                {"errors": "Рецепт уже был добавлен!"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         recipe = get_object_or_404(Recipe, id=pk)
