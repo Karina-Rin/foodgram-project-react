@@ -11,12 +11,11 @@ from api.serializers import (IngredientSerializer, RecipeSerializer,
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models import F, Q, Sum
+from django.db.models import F, Q, QuerySet, Sum
 from django.http.response import HttpResponse
-from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
-from rest_framework import generics, mixins, status, viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
@@ -97,19 +96,6 @@ class TagViewSet(
     serializer_class = TagSerializer
 
 
-class RecipeListView(generics.ListAPIView):
-    serializer_class = ShortRecipeSerializer
-    queryset = Recipe.objects.all()
-
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        recipe_limit = int(request.query_params.get("recipes_limit", 0))
-        if recipe_limit and len(self.queryset) > recipe_limit:
-            count = len(self.queryset) - recipe_limit
-            response.data["hidden_count"] = count
-        return response
-
-
 class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     queryset = Recipe.objects.select_related("author")
     serializer_class = RecipeSerializer
@@ -117,53 +103,39 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     pagination_class = PageLimitPagination
     add_serializer = ShortRecipeSerializer
 
-    def get_queryset(self):
-        queryset = Recipe.objects.all()
+    def get_queryset(self) -> QuerySet[Recipe]:
+        queryset = self.queryset
 
-        if not self.request.query_params:
+        tags: list = self.request.query_params.getlist("tags")
+        if tags:
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
+
+        author: str = self.request.query_params.get("author")
+        if author:
+            queryset = queryset.filter(author=author)
+
+        if self.request.user.is_anonymous:
             return queryset
 
-        tags = self.request.query_params.getlist("tags")
-        if tags is not None:
-            slug = Tag.objects.filter(slug__in=tags).all()
-            recipes = (
-                Recipe.objects.filter(tags__in=slug).values("id").distinct()
-            )
-            queryset = queryset.filter(id__in=recipes)
+        is_in_cart: str = self.request.query_params.get("is_in_shopping_cart")
+        if is_in_cart in symbol_true_search:
+            queryset = queryset.filter(in_carts__user=self.request.user)
+        elif is_in_cart in symbol_false_search:
+            queryset = queryset.exclude(in_carts__user=self.request.user)
 
-        author_id = self.request.query_params.get("author")
-        if author_id is not None:
-            queryset = queryset.filter(author_id=author_id).all()
-
+        is_favorit: str = self.request.query_params.get("is_favorited")
+        if is_favorit in symbol_true_search:
+            queryset = queryset.filter(in_favorites__user=self.request.user)
+        if is_favorit in symbol_false_search:
+            queryset = queryset.exclude(in_favorites__user=self.request.user)
         return queryset
-
-    def add_to(self, model, user, pk):
-        if model.objects.filter(user=user, recipe__id=pk).exists():
-            return Response(
-                {"errors": "Рецепт уже был добавлен!"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        recipe = get_object_or_404(Recipe, id=pk)
-        model.objects.create(user=user, recipe=recipe)
-        serializer = ShortRecipeSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def delete_from(self, model, user, pk):
-        obj = model.objects.filter(user=user, recipe__id=pk)
-        if obj.exists():
-            obj.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(
-            {"errors": "Рецепт уже удален!"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
 
     @action(
         methods=action_methods,
         detail=True,
         permission_classes=(IsAuthenticated,),
     )
-    def favorite(self, request, pk):
+    def favorite(self, request: WSGIRequest, pk: int or str) -> Response:
         if request.method == "POST":
             return self.add_to(Favorites, request.user, pk)
         else:
@@ -174,7 +146,7 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
         detail=True,
         permission_classes=(IsAuthenticated,),
     )
-    def shopping_cart(self, request, pk):
+    def shopping_cart(self, request: WSGIRequest, pk: int or str) -> Response:
         if request.method == "POST":
             return self.add_to(Carts, request.user, pk)
         else:
