@@ -40,7 +40,8 @@ class ShortRecipeSerializer(ModelSerializer):
         list_serializer_class = FilterRecipesLimitSerializer
 
     def get_remaining_count(self, obj):
-        author_recipes_count = Recipe.objects.filter(author=obj.author).count()
+        author = obj.author.all().first()
+        author_recipes_count = Recipe.objects.filter(author=author).count()
         remaining = author_recipes_count - 3
         if remaining <= 0:
             return ""
