@@ -10,6 +10,7 @@ from drf_extra_fields.fields import Base64ImageField
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
 from rest_framework.serializers import (ListSerializer, ModelSerializer,
                                         SerializerMethodField)
+from users.models import Subscribe
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient
@@ -64,15 +65,11 @@ class UserSerializer(ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
         read_only_fields = ("is_subscribed",)
 
-    def get_is_subscribed(self, obj: User) -> bool:
-        user = self.context.get("view").request.user
-        if user.is_anonymous or (user == obj):
+    def get_is_subscribed(self, obj):
+        user = self.context.get("request").user
+        if user.is_anonymous:
             return False
-
-        if not self.context.get("view").request:
-            return False
-
-        return user.subscriptions.filter(author=obj).exists()
+        return Subscribe.objects.filter(user=user, author=obj).exists()
 
     def create(self, validated_data: dict) -> User:
         user = User(
