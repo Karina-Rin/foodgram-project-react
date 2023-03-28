@@ -10,6 +10,7 @@ from drf_extra_fields.fields import Base64ImageField
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
 from rest_framework.serializers import (ListSerializer, ModelSerializer,
                                         SerializerMethodField)
+from users.models import Subscribe
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient
@@ -104,14 +105,21 @@ class SubscribeSerializer(UserSerializer):
         )
         read_only_fields = ("__all__",)
 
-    def get_remaining_recipes_count(self, obj: User) -> int:
-        count = obj.recipes.count() - 3 if obj.recipes.count() > 3 else 0
-        return count
+    def get_is_subscribed(self, obj):
+        return Subscribe.objects.filter(
+            user=obj.user, author=obj.author
+        ).exists()
 
-    def get_recipes(self, obj: User):
-        recipes = obj.recipes.all()[:3]
-        serializer = ShortRecipeSerializer(recipes, many=True)
-        return serializer.data
+    def get_recipes(self, obj):
+        request = self.context.get("request")
+        limit = request.GET.get("recipes_limit")
+        queryset = Recipe.objects.filter(author=obj.author)
+        if limit:
+            queryset = queryset[: int(limit)]
+        return ShortRecipeSerializer(queryset, many=True).data
+
+    def get_recipes_count(self, obj):
+        return Recipe.objects.filter(author=obj.author).count()
 
 
 class TagSerializer(ModelSerializer):
