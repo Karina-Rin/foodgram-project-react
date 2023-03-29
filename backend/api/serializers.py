@@ -21,31 +21,22 @@ class FilterRecipesLimitSerializer(ListSerializer):
     def to_representation(self, data):
         if not self.context.get("request"):
             return super().to_representation(data)
+
         if "recipes_limit" not in self.context["request"].query_params:
-            recipes_limit = 3
-        else:
-            recipes_limit = int(
-                self.context["request"].query_params.get("recipes_limit")
-            )
+            return super().to_representation(data)
+
+        recipes_limit = int(
+            self.context["request"].query_params.get("recipes_limit")
+        )
         return super().to_representation(data[:recipes_limit])
 
 
 class ShortRecipeSerializer(ModelSerializer):
-    remaining_count = SerializerMethodField()
-
     class Meta:
         model = Recipe
-        fields = ["id", "name", "image", "cooking_time", "remaining_count"]
-        read_only_fields = ("id", "name", "image", "cooking_time")
+        fields = "id", "name", "image", "cooking_time"
+        read_only_fields = ("__all__",)
         list_serializer_class = FilterRecipesLimitSerializer
-
-    def get_remaining_count(self, obj):
-        author = obj.author.all().first()
-        author_recipes_count = Recipe.objects.filter(author=author).count()
-        remaining = author_recipes_count - 3
-        if remaining <= 0:
-            return ""
-        return f"Ещё {remaining} рецептов..."
 
 
 class UserSerializer(ModelSerializer):
@@ -65,13 +56,12 @@ class UserSerializer(ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
         read_only_fields = ("is_subscribed",)
 
-    def get_is_subscribed(self, obj: User):
-        view = self.context.get("view")
-        if view is None:
+    def get_is_subscribed(self, obj: User) -> bool:
+        user = self.context.get("view").request.user
+
+        if user.is_anonymous or (user == obj):
             return False
-        user = view.request.user
-        if user.is_anonymous:
-            return False
+
         return user.subscriptions.filter(author=obj).exists()
 
     def create(self, validated_data: dict) -> User:
@@ -87,7 +77,7 @@ class UserSerializer(ModelSerializer):
 
 
 class SubscribeSerializer(UserSerializer):
-    recipes = ShortRecipeSerializer()
+    recipes = ShortRecipeSerializer(many=True, read_only=True)
     recipes_count = SerializerMethodField()
 
     class Meta:
@@ -102,19 +92,13 @@ class SubscribeSerializer(UserSerializer):
             "recipes",
             "recipes_count",
         )
-        read_only_fields = ("email", "username")
+        read_only_fields = ("__all__",)
 
-    def get_recipes_count(self, obj):
+    def get_is_subscribed(*args) -> bool:
+        return True
+
+    def get_recipes_count(self, obj: User) -> int:
         return obj.recipes.count()
-
-    def get_recipes(self, obj):
-        request = self.context.get("request")
-        limit = request.GET.get("recipes_limit")
-        recipes = obj.recipes.all()
-        if limit:
-            recipes = recipes[: int(limit)]
-        serializer = ShortRecipeSerializer(recipes, many=True, read_only=True)
-        return serializer.data
 
 
 class TagSerializer(ModelSerializer):

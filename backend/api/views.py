@@ -3,7 +3,7 @@ from typing import List
 from urllib.parse import unquote
 
 from api.mixins import AddDelViewMixin
-from api.paginators import PageLimitPagination
+from api.paginators import PageLimitPagination, RecipePagination
 from api.permissions import OwnerOrReadOnly
 from api.serializers import (IngredientSerializer, RecipeSerializer,
                              ShortRecipeSerializer, SubscribeSerializer,
@@ -99,10 +99,9 @@ class TagViewSet(
 
 class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     queryset = Recipe.objects.select_related("author")
-    serializer_class = RecipeSerializer
+    serializer_class = RecipeSerializer, ShortRecipeSerializer
     permission_classes = (OwnerOrReadOnly,)
-    pagination_class = PageLimitPagination
-    add_serializer = ShortRecipeSerializer
+    pagination_class = PageLimitPagination, RecipePagination
 
     def get_queryset(self) -> QuerySet[Recipe]:
         queryset = self.queryset
