@@ -98,7 +98,7 @@ class TagViewSet(
 
 
 class RecipeViewSet(ModelViewSet, AddDelViewMixin):
-    queryset = Recipe.objects.select_related("author")
+    queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (OwnerOrReadOnly,)
     pagination_class = PageLimitPagination
