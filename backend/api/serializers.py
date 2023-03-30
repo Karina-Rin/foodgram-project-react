@@ -8,7 +8,9 @@ from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.serializers import (ModelSerializer, ReadOnlyField,
+                                        SerializerMethodField)
+from users.models import Subscribe
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient
@@ -93,6 +95,44 @@ class SubscribeSerializer(UserSerializer):
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
+
+
+class SubscribeSerializer(ModelSerializer):
+    email = ReadOnlyField(source="author.email")
+    id = ReadOnlyField(source="author.id")
+    username = ReadOnlyField(source="author.username")
+    first_name = ReadOnlyField(source="author.first_name")
+    last_name = ReadOnlyField(source="author.last_name")
+    recipes = SerializerMethodField()
+    recipes_count = ReadOnlyField(source="author.recipes.count")
+    is_subscribed = SerializerMethodField()
+
+    class Meta:
+        model = Subscribe
+        fields = (
+            "email",
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+            "recipes",
+            "recipes_count",
+        )
+
+    def get_is_subscribed(self, obj):
+        user = self.context.get("request").user
+        return Subscribe.objects.filter(author=obj.author, user=user).exists()
+
+    def get_recipes(self, obj):
+        from api.serializers import ShortRecipeSerializer
+
+        limit = self.context.get("request").GET.get("recipes_limit")
+        recipe_obj = obj.author.recipes.all()
+        if limit:
+            recipe_obj = recipe_obj[: int(limit)]
+        serializer = ShortRecipeSerializer(recipe_obj, many=True)
+        return serializer.data
 
 
 class TagSerializer(ModelSerializer):
