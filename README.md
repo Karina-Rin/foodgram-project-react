@@ -67,8 +67,7 @@ python manage.py showmigrations
 ```
 10. Выполняем миграции
 ```
-python manage.py makemigrations users
-python manage.py makemigrations recipes
+python manage.py makemigrations users recipes
 ```
 11. Применяем миграции
 ```

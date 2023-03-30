@@ -1,5 +1,41 @@
 [
     {
+        "model": "recipes.tag",
+        "pk": 1,
+        "fields": {
+            "name": "завтрак",
+            "color": "#00FF00",
+            "slug": "breakfast"
+        }
+    },
+    {
+        "model": "recipes.tag",
+        "pk": 2,
+        "fields": {
+            "name": "перекус",
+            "color": "00FFFF",
+            "slug": "snake"
+        }
+    },
+    {
+        "model": "recipes.tag",
+        "pk": 3,
+        "fields": {
+            "name": "обед",
+            "color": "FF6666",
+            "slug": "lunch"
+        }
+    },
+    {
+        "model": "recipes.tag",
+        "pk": 4,
+        "fields": {
+            "name": "ужин",
+            "color": "0000FF",
+            "slug": "dinner"
+        }
+    },
+    {
         "model": "recipes.ingredient",
         "pk": 1,
         "fields": {
