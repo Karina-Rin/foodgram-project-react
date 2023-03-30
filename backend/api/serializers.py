@@ -83,7 +83,15 @@ class SubscribeSerializer(UserSerializer):
     def get_is_subscribed(*args) -> bool:
         return True
 
-    def get_recipes_count(self, obj: User) -> int:
+    def get_recipes(self, obj):
+        recipes = obj.recipes.all()[:3]
+        serialized_recipes = ShortRecipeSerializer(recipes, many=True).data
+        if obj.recipes.count() > 3:
+            remaining_count = obj.recipes.count() - 3
+            serialized_recipes.append({"remaining_count": remaining_count})
+        return serialized_recipes
+
+    def get_recipes_count(self, obj):
         return obj.recipes.count()
 
 
