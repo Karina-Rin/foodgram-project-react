@@ -10,7 +10,7 @@ from drf_extra_fields.fields import Base64ImageField
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
 from rest_framework.serializers import (ModelSerializer, ReadOnlyField,
                                         SerializerMethodField)
-from users.models import Subscribe
+from users.models import Subscribe, User
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient
@@ -64,39 +64,6 @@ class UserSerializer(ModelSerializer):
         return user
 
 
-class SubscribeSerializer(UserSerializer):
-    recipes = ShortRecipeSerializer()
-    recipes_count = SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = (
-            "email",
-            "id",
-            "username",
-            "first_name",
-            "last_name",
-            "is_subscribed",
-            "recipes",
-            "recipes_count",
-        )
-        read_only_fields = ("__all__",)
-
-    def get_is_subscribed(*args) -> bool:
-        return True
-
-    def get_recipes(self, obj):
-        recipes = obj.recipes.all()[:3]
-        serialized_recipes = ShortRecipeSerializer(recipes, many=True).data
-        if obj.recipes.count() > 3:
-            remaining_count = obj.recipes.count() - 3
-            serialized_recipes.append({"remaining_count": remaining_count})
-        return serialized_recipes
-
-    def get_recipes_count(self, obj):
-        return obj.recipes.count()
-
-
 class SubscribeSerializer(ModelSerializer):
     email = ReadOnlyField(source="author.email")
     id = ReadOnlyField(source="author.id")
@@ -133,6 +100,14 @@ class SubscribeSerializer(ModelSerializer):
             recipe_obj = recipe_obj[: int(limit)]
         serializer = ShortRecipeSerializer(recipe_obj, many=True)
         return serializer.data
+
+    def get_recipes(self, obj):
+        recipes = obj.recipes.all()[:3]
+        serialized_recipes = ShortRecipeSerializer(recipes, many=True).data
+        if obj.recipes.count() > 3:
+            remaining_count = obj.recipes.count() - 3
+            serialized_recipes.append({"remaining_count": remaining_count})
+        return serialized_recipes
 
 
 class TagSerializer(ModelSerializer):
