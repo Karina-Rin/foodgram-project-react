@@ -2,6 +2,7 @@ from datetime import datetime as dt
 from typing import List
 from urllib.parse import unquote
 
+from api.filters import RecipeFilter
 from api.mixins import AddDelViewMixin
 from api.paginators import PageLimitPagination
 from api.permissions import OwnerOrReadOnly
@@ -14,6 +15,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import F, Q, QuerySet, Sum
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import Carts, Favorites, Ingredient, Recipe, Tag
 from rest_framework import mixins, status, viewsets
@@ -103,6 +105,8 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     permission_classes = (OwnerOrReadOnly,)
     pagination_class = PageLimitPagination
     add_serializer = ShortRecipeSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = RecipeFilter
 
     def get_queryset(self) -> QuerySet[Recipe]:
         queryset = self.queryset
