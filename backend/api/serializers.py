@@ -88,8 +88,15 @@ class SubscribeSerializer(ModelSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        user = self.context.get("request").user
-        return Subscribe.objects.filter(author=obj.author, user=user).exists()
+        request = self.context.get("request")
+
+        if request and request.user:
+            user = request.user
+            return Subscribe.objects.filter(
+                author=obj.author, user=user
+            ).exists()
+
+        return False
 
     def get_recipes(self, obj):
         from api.serializers import ShortRecipeSerializer
