@@ -13,7 +13,7 @@
         "pk": 2,
         "fields": {
             "name": "перекус",
-            "color": "00FFFF",
+            "color": "#00FFFF",
             "slug": "snake"
         }
     },
@@ -22,7 +22,7 @@
         "pk": 3,
         "fields": {
             "name": "обед",
-            "color": "FF6666",
+            "color": "#FF6666",
             "slug": "lunch"
         }
     },
@@ -31,7 +31,7 @@
         "pk": 4,
         "fields": {
             "name": "ужин",
-            "color": "0000FF",
+            "color": "#0000FF",
             "slug": "dinner"
         }
     },
