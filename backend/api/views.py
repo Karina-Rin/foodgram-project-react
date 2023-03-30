@@ -102,7 +102,6 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
     serializer_class = RecipeSerializer
     permission_classes = (OwnerOrReadOnly,)
     pagination_class = PageLimitPagination
-    add_serializer = ShortRecipeSerializer
 
     def get_queryset(self) -> QuerySet[Recipe]:
         queryset = self.queryset
@@ -131,13 +130,14 @@ class RecipeViewSet(ModelViewSet, AddDelViewMixin):
             queryset = queryset.exclude(in_favorites__user=self.request.user)
         return queryset
 
-    def add_to(self, model, user, pk):
-        if model.objects.filter(user=user, recipe__id=pk).exists():
+    def add_to(self, model, user, pk, name):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        relation = model.objects.filter(user=user, recipe=recipe)
+        if relation.exists():
             return Response(
-                {"errors": "Рецепт уже был добавлен!"},
+                {"errors": f"Нельзя повторно добавить рецепт в {name}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        recipe = get_object_or_404(Recipe, id=pk)
         model.objects.create(user=user, recipe=recipe)
         serializer = ShortRecipeSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

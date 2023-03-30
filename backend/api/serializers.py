@@ -17,9 +17,12 @@ User = get_user_model()
 
 
 class ShortRecipeSerializer(ModelSerializer):
+    image = Base64ImageField()
+
     class Meta:
         model = Recipe
         fields = "id", "name", "image", "cooking_time"
+        read_only_fields = ("id", "name", "image", "cooking_time")
 
 
 class UserSerializer(ModelSerializer):
