@@ -18,15 +18,17 @@ User = get_user_model()
 
 
 class FilterRecipesLimitSerializer(ListSerializer):
-    def to_representation(self, data, context=None):
-        if not context:
+    def to_representation(self, data):
+        if not self.context.get("request"):
             return super().to_representation(data)
-        if "recipes_limit" not in context["request"].query_params:
+
+        if "recipes_limit" not in self.context["request"].query_params:
             return super().to_representation(data)
+
         recipes_limit = int(
-            context["request"].query_params.get("recipes_limit")
+            self.context["request"].query_params.get("recipes_limit")
         )
-        return super().to_representation(data[:recipes_limit])
+        return super().to_representation(data.all()[:recipes_limit])
 
 
 class ShortRecipeSerializer(ModelSerializer):
