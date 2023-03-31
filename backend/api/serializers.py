@@ -100,10 +100,6 @@ class SubscribeSerializer(UserSerializer):
     def get_recipes_count(self, obj: User) -> int:
         return obj.recipes.count()
 
-    def get_recipes(self, obj: User):
-        recipes = obj.recipes.all()
-        return ShortRecipeSerializer(recipes, many=True).data
-
 
 class TagSerializer(ModelSerializer):
     class Meta:
