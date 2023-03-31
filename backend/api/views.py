@@ -54,11 +54,11 @@ class UserViewSet(DjoserUserViewSet, AddDelViewMixin):
     def subscriptions(self, request: WSGIRequest) -> Response:
         if self.request.user.is_anonymous:
             return Response(status=HTTP_401_UNAUTHORIZED)
-
+        context = self.get_serializer_context()
         pages = self.paginate_queryset(
             User.objects.filter(subscribers__user=self.request.user)
         )
-        serializer = SubscribeSerializer(pages, many=True)
+        serializer = SubscribeSerializer(pages, many=True, context=context)
         return self.get_paginated_response(serializer.data)
 
 
