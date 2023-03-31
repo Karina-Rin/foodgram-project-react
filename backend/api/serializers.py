@@ -8,8 +8,11 @@ from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
-from rest_framework.serializers import (ListSerializer, ModelSerializer,
-                                        SerializerMethodField)
+from rest_framework.serializers import (
+    ListSerializer,
+    ModelSerializer,
+    SerializerMethodField,
+)
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient
@@ -21,10 +24,8 @@ class FilterRecipesLimitSerializer(ListSerializer):
     def to_representation(self, data):
         if not self.context.get("request"):
             return super().to_representation(data, context=self.context)
-
         if "recipes_limit" not in self.context["request"].query_params:
             return super().to_representation(data)
-
         recipes_limit = int(
             self.context["request"].query_params.get("recipes_limit")
         )
