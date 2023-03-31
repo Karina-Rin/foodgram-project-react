@@ -8,11 +8,8 @@ from django.db.models.query import QuerySet
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import AmountIngredient, Ingredient, Recipe, Tag
-from rest_framework.serializers import (
-    ListSerializer,
-    ModelSerializer,
-    SerializerMethodField,
-)
+from rest_framework.serializers import (ListSerializer, ModelSerializer,
+                                        SerializerMethodField)
 
 if TYPE_CHECKING:
     from recipes.models import Ingredient
